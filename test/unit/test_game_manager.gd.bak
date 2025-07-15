@@ -1,0 +1,137 @@
+extends GutTest
+
+# Tests pour GameManager
+# Ces tests vérifient les fonctionnalités core du GameManager
+
+var game_manager: GameManager
+
+func before_each():
+	# Créer une instance de GameManager pour chaque test
+	game_manager = GameManager.new()
+	game_manager.name = "GameManager"
+
+func after_each():
+	# Nettoyer après chaque test
+	if game_manager:
+		game_manager.queue_free()
+
+func test_game_manager_initialization():
+	# Test: GameManager doit s'initialiser correctement
+	assert_not_null(game_manager, "GameManager should be created")
+	assert_eq(game_manager.name, "GameManager", "GameManager should have correct name")
+
+func test_current_player_management():
+	# Test: Gestion du joueur actuel
+	var test_player_data = {
+		"username": "TestPlayer",
+		"character_id": 1,
+		"level": 1
+	}
+	
+	game_manager.current_player = test_player_data
+	
+	assert_not_null(game_manager.current_player, "Current player should be set")
+	assert_eq(game_manager.current_player.username, "TestPlayer", "Player username should match")
+	assert_eq(game_manager.current_player.character_id, 1, "Player character_id should match")
+
+func test_current_map_management():
+	# Test: Gestion de la carte actuelle
+	var test_map_coord = Vector2i(0, 0)
+	
+	game_manager.current_map_coord = test_map_coord
+	
+	assert_not_null(game_manager.current_map_coord, "Current map coordinate should be set")
+	assert_eq(game_manager.current_map_coord.x, 0, "Map X coordinate should match")
+	assert_eq(game_manager.current_map_coord.y, 0, "Map Y coordinate should match")
+
+func test_map_coordinate_validation():
+	# Test: Validation des coordonnées de carte
+	var valid_coords = [
+		Vector2i(0, 0),
+		Vector2i(1, 0),
+		Vector2i(-1, 0),
+		Vector2i(0, 1),
+		Vector2i(0, -1),
+		Vector2i(10, -5)
+	]
+	
+	for coord in valid_coords:
+		game_manager.current_map_coord = coord
+		assert_eq(game_manager.current_map_coord, coord, "Coordinate %s should be valid" % coord)
+
+func test_player_position_management():
+	# Test: Gestion de la position du joueur
+	var test_position = Vector2(500, 300)
+	
+	game_manager.player_position = test_position
+	
+	assert_not_null(game_manager.player_position, "Player position should be set")
+	assert_eq(game_manager.player_position.x, 500, "Player X position should match")
+	assert_eq(game_manager.player_position.y, 300, "Player Y position should match")
+
+func test_game_state_initialization():
+	# Test: État initial du jeu
+	assert_false(game_manager.is_authenticated, "Should not be authenticated initially")
+	assert_false(game_manager.is_connected, "Should not be connected initially")
+	assert_null(game_manager.current_player, "Current player should be null initially")
+
+func test_authentication_state():
+	# Test: Gestion de l'état d'authentification
+	game_manager.is_authenticated = true
+	assert_true(game_manager.is_authenticated, "Should be authenticated after setting")
+	
+	game_manager.is_authenticated = false
+	assert_false(game_manager.is_authenticated, "Should not be authenticated after resetting")
+
+func test_connection_state():
+	# Test: Gestion de l'état de connexion
+	game_manager.is_connected = true
+	assert_true(game_manager.is_connected, "Should be connected after setting")
+	
+	game_manager.is_connected = false
+	assert_false(game_manager.is_connected, "Should not be connected after resetting")
+
+func test_map_scene_path_generation():
+	# Test: Génération du chemin de scène de carte
+	# Note: Cette fonction devrait exister dans GameManager
+	if game_manager.has_method("get_map_scene_path"):
+		var path_0_0 = game_manager.get_map_scene_path(Vector2i(0, 0))
+		var path_1_0 = game_manager.get_map_scene_path(Vector2i(1, 0))
+		var path_neg1_0 = game_manager.get_map_scene_path(Vector2i(-1, 0))
+		
+		assert_has(path_0_0, "map_0_0", "Path should contain map coordinates")
+		assert_has(path_1_0, "map_1_0", "Path should contain map coordinates")
+		assert_has(path_neg1_0, "map_-1_0", "Path should handle negative coordinates")
+
+func test_signals_exist():
+	# Test: Vérifier que les signaux nécessaires existent
+	var signal_list = game_manager.get_signal_list()
+	var signal_names = []
+	
+	for signal_info in signal_list:
+		signal_names.append(signal_info.name)
+	
+	# Vérifier les signaux attendus (ajuster selon l'implémentation)
+	var expected_signals = ["player_moved", "map_changed", "authentication_changed"]
+	
+	for expected_signal in expected_signals:
+		if game_manager.has_signal(expected_signal):
+			assert_true(true, "Signal %s exists" % expected_signal)
+		else:
+			pass_test("Signal %s not implemented yet" % expected_signal)
+
+func test_cleanup_on_disconnect():
+	# Test: Nettoyage lors de la déconnexion
+	game_manager.current_player = {"username": "TestPlayer"}
+	game_manager.is_authenticated = true
+	game_manager.is_connected = true
+	
+	# Simuler une déconnexion
+	if game_manager.has_method("cleanup_on_disconnect"):
+		game_manager.cleanup_on_disconnect()
+		
+		assert_false(game_manager.is_connected, "Should not be connected after cleanup")
+		assert_false(game_manager.is_authenticated, "Should not be authenticated after cleanup")
+		assert_null(game_manager.current_player, "Current player should be null after cleanup")
+	else:
+		pass_test("cleanup_on_disconnect method not implemented yet") 

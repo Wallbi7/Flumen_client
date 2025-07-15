@@ -1,0 +1,160 @@
+extends GutTest
+
+# Tests pour MapConfig
+# Ces tests vérifient le système de configuration des cartes
+
+var map_config: MapConfig
+
+func before_each():
+	# Créer une instance de MapConfig pour chaque test
+	map_config = MapConfig.new()
+
+func after_each():
+	# Nettoyer après chaque test
+	if map_config:
+		map_config.queue_free()
+
+func test_map_config_initialization():
+	# Test: MapConfig doit s'initialiser correctement
+	assert_not_null(map_config, "MapConfig should be created")
+
+func test_get_map_scene_path():
+	# Test: Génération des chemins de scène de carte
+	var path_0_0 = map_config.get_map_scene_path(Vector2i(0, 0))
+	var path_1_0 = map_config.get_map_scene_path(Vector2i(1, 0))
+	var path_neg1_0 = map_config.get_map_scene_path(Vector2i(-1, 0))
+	var path_0_1 = map_config.get_map_scene_path(Vector2i(0, 1))
+	var path_0_neg1 = map_config.get_map_scene_path(Vector2i(0, -1))
+	
+	assert_eq(path_0_0, "res://game/maps/map_0_0/map_0_0.tscn", "Path for (0,0) should be correct")
+	assert_eq(path_1_0, "res://game/maps/map_1_0/map_1_0.tscn", "Path for (1,0) should be correct")
+	assert_eq(path_neg1_0, "res://game/maps/map_-1_0/map_-1_0.tscn", "Path for (-1,0) should handle negative coordinates")
+	assert_eq(path_0_1, "res://game/maps/map_0_1/map_0_1.tscn", "Path for (0,1) should be correct")
+	assert_eq(path_0_neg1, "res://game/maps/map_0_-1/map_0_-1.tscn", "Path for (0,-1) should handle negative coordinates")
+
+func test_get_adjacent_coordinates():
+	# Test: Calcul des coordonnées adjacentes
+	var coord = Vector2i(0, 0)
+	var adjacent = map_config.get_adjacent_coordinates(coord)
+	
+	assert_eq(adjacent.size(), 4, "Should have 4 adjacent coordinates")
+	assert_has(adjacent, Vector2i(1, 0), "Should have right coordinate")
+	assert_has(adjacent, Vector2i(-1, 0), "Should have left coordinate")
+	assert_has(adjacent, Vector2i(0, 1), "Should have up coordinate")
+	assert_has(adjacent, Vector2i(0, -1), "Should have down coordinate")
+
+func test_get_adjacent_coordinates_negative():
+	# Test: Coordonnées adjacentes pour coordonnées négatives
+	var coord = Vector2i(-1, -1)
+	var adjacent = map_config.get_adjacent_coordinates(coord)
+	
+	assert_eq(adjacent.size(), 4, "Should have 4 adjacent coordinates")
+	assert_has(adjacent, Vector2i(0, -1), "Should have right coordinate")
+	assert_has(adjacent, Vector2i(-2, -1), "Should have left coordinate")
+	assert_has(adjacent, Vector2i(-1, 0), "Should have up coordinate")
+	assert_has(adjacent, Vector2i(-1, -2), "Should have down coordinate")
+
+func test_get_spawn_position():
+	# Test: Positions de spawn selon la direction
+	var spawn_from_left = map_config.get_spawn_position("left")
+	var spawn_from_right = map_config.get_spawn_position("right")
+	var spawn_from_up = map_config.get_spawn_position("up")
+	var spawn_from_down = map_config.get_spawn_position("down")
+	
+	# Vérifier que les positions sont dans les bonnes zones
+	assert_lt(spawn_from_left.x, 200, "Spawn from left should be on left side")
+	assert_gt(spawn_from_right.x, 800, "Spawn from right should be on right side")
+	assert_lt(spawn_from_up.y, 200, "Spawn from up should be on top")
+	assert_gt(spawn_from_down.y, 400, "Spawn from down should be on bottom")
+
+func test_get_spawn_position_default():
+	# Test: Position de spawn par défaut
+	var spawn_default = map_config.get_spawn_position("invalid_direction")
+	var spawn_center = map_config.get_spawn_position("")
+	
+	# Devrait retourner le centre par défaut
+	assert_between(spawn_default.x, 400, 600, "Default spawn X should be centered")
+	assert_between(spawn_default.y, 250, 350, "Default spawn Y should be centered")
+	assert_between(spawn_center.x, 400, 600, "Center spawn X should be centered")
+	assert_between(spawn_center.y, 250, 350, "Center spawn Y should be centered")
+
+func test_coordinate_to_string():
+	# Test: Conversion des coordonnées en string
+	if map_config.has_method("coordinate_to_string"):
+		var str_0_0 = map_config.coordinate_to_string(Vector2i(0, 0))
+		var str_1_0 = map_config.coordinate_to_string(Vector2i(1, 0))
+		var str_neg1_0 = map_config.coordinate_to_string(Vector2i(-1, 0))
+		
+		assert_eq(str_0_0, "0_0", "Coordinate (0,0) should convert to '0_0'")
+		assert_eq(str_1_0, "1_0", "Coordinate (1,0) should convert to '1_0'")
+		assert_eq(str_neg1_0, "-1_0", "Coordinate (-1,0) should convert to '-1_0'")
+
+func test_string_to_coordinate():
+	# Test: Conversion des strings en coordonnées
+	if map_config.has_method("string_to_coordinate"):
+		var coord_0_0 = map_config.string_to_coordinate("0_0")
+		var coord_1_0 = map_config.string_to_coordinate("1_0")
+		var coord_neg1_0 = map_config.string_to_coordinate("-1_0")
+		
+		assert_eq(coord_0_0, Vector2i(0, 0), "String '0_0' should convert to (0,0)")
+		assert_eq(coord_1_0, Vector2i(1, 0), "String '1_0' should convert to (1,0)")
+		assert_eq(coord_neg1_0, Vector2i(-1, 0), "String '-1_0' should convert to (-1,0)")
+
+func test_is_valid_coordinate():
+	# Test: Validation des coordonnées
+	if map_config.has_method("is_valid_coordinate"):
+		assert_true(map_config.is_valid_coordinate(Vector2i(0, 0)), "Origin should be valid")
+		assert_true(map_config.is_valid_coordinate(Vector2i(1, 0)), "Positive coordinates should be valid")
+		assert_true(map_config.is_valid_coordinate(Vector2i(-1, 0)), "Negative coordinates should be valid")
+		assert_true(map_config.is_valid_coordinate(Vector2i(100, -100)), "Large coordinates should be valid")
+
+func test_get_direction_to_coordinate():
+	# Test: Calcul de la direction vers une coordonnée
+	if map_config.has_method("get_direction_to_coordinate"):
+		var from = Vector2i(0, 0)
+		
+		var dir_right = map_config.get_direction_to_coordinate(from, Vector2i(1, 0))
+		var dir_left = map_config.get_direction_to_coordinate(from, Vector2i(-1, 0))
+		var dir_up = map_config.get_direction_to_coordinate(from, Vector2i(0, 1))
+		var dir_down = map_config.get_direction_to_coordinate(from, Vector2i(0, -1))
+		
+		assert_eq(dir_right, "right", "Direction to (1,0) should be 'right'")
+		assert_eq(dir_left, "left", "Direction to (-1,0) should be 'left'")
+		assert_eq(dir_up, "up", "Direction to (0,1) should be 'up'")
+		assert_eq(dir_down, "down", "Direction to (0,-1) should be 'down'")
+
+func test_map_bounds():
+	# Test: Limites de la carte
+	if map_config.has_method("get_map_bounds"):
+		var bounds = map_config.get_map_bounds()
+		
+		assert_not_null(bounds, "Map bounds should be defined")
+		assert_gt(bounds.size.x, 0, "Map width should be positive")
+		assert_gt(bounds.size.y, 0, "Map height should be positive")
+
+func test_performance_large_coordinates():
+	# Test: Performance avec de grandes coordonnées
+	var large_coords = [
+		Vector2i(1000, 1000),
+		Vector2i(-1000, -1000),
+		Vector2i(999999, -999999)
+	]
+	
+	for coord in large_coords:
+		var path = map_config.get_map_scene_path(coord)
+		assert_not_null(path, "Should handle large coordinate %s" % coord)
+		assert_has(path, str(coord.x), "Path should contain X coordinate")
+		assert_has(path, str(coord.y), "Path should contain Y coordinate")
+
+func test_edge_cases():
+	# Test: Cas limites
+	var edge_coords = [
+		Vector2i(0, 0),
+		Vector2i(2147483647, 2147483647),  # Max int32
+		Vector2i(-2147483648, -2147483648)  # Min int32
+	]
+	
+	for coord in edge_coords:
+		var path = map_config.get_map_scene_path(coord)
+		assert_not_null(path, "Should handle edge case coordinate %s" % coord)
+		assert_has(path, ".tscn", "Path should be a valid scene file") 

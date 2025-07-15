@@ -1,0 +1,238 @@
+[gd_scene load_steps=5 format=3 uid="uid://bwm4y25kxsj1x"]
+
+[ext_resource type="Script" uid="uid://dldv0ktujvqv8" path="res://game/LoginScene.gd" id="1_j8k3v"]
+
+[node name="LoginScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_j8k3v")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.15, 0.25, 0.35, 1)
+
+[node name="BackgroundPattern" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.2, 0.3, 0.4, 0.3)
+
+[node name="LoginPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -300.0
+offset_right = 250.0
+offset_bottom = 300.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LoginPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="GameLogo" type="Label" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_font_sizes/font_size = 48
+text = "🌊 FLUMEN 🌊"
+horizontal_alignment = 1
+
+[node name="WelcomeLabel" type="Label" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 16
+text = "BIENVENUE SUR FLUMEN"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Connexion" type="Control" parent="LoginPanel/VBoxContainer/TabContainer"]
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LoginPanel/VBoxContainer/TabContainer/Connexion"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="IdentifierLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+text = "Nom de compte ou email :"
+
+[node name="IdentifierInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Entrez votre nom d'utilisateur ou email"
+
+[node name="PasswordLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+text = "Mot de passe :"
+
+[node name="PasswordInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Entrez votre mot de passe"
+secret = true
+
+[node name="OptionsContainer" type="HBoxContainer" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+
+[node name="RememberCheckBox" type="CheckBox" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer/OptionsContainer"]
+layout_mode = 2
+text = "Se souvenir de moi"
+
+[node name="ForgotPasswordButton" type="LinkButton" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer/OptionsContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Mot de passe oublié ?"
+
+[node name="HSeparator2" type="HSeparator" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+
+[node name="LoginButton" type="Button" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "🎮 JOUER 🎮"
+
+[node name="StatusLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_contents = true
+
+[node name="CreateAccountButton" type="LinkButton" parent="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer"]
+layout_mode = 2
+text = "Créer un compte"
+horizontal_alignment = 1
+
+[node name="Inscription" type="Control" parent="LoginPanel/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LoginPanel/VBoxContainer/TabContainer/Inscription"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="UsernameLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "Nom d'utilisateur :"
+
+[node name="UsernameInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "4-20 caractères, pas de majuscules après la 1ère lettre"
+
+[node name="UsernameErrorLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = ""
+autowrap_mode = 3
+
+[node name="EmailLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "Adresse email :"
+
+[node name="EmailInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "votre@email.com"
+
+[node name="PasswordLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "Mot de passe :"
+
+[node name="PasswordInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Min 8 caractères avec majuscule, chiffre et caractère spécial"
+secret = true
+
+[node name="ConfirmPasswordLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "Confirmer le mot de passe :"
+
+[node name="ConfirmPasswordInput" type="LineEdit" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Retapez votre mot de passe"
+secret = true
+
+[node name="AcceptTermsCheckBox" type="CheckBox" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "J'accepte les conditions d'utilisation"
+
+[node name="HSeparator3" type="HSeparator" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+
+[node name="RegisterButton" type="Button" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "CRÉER MON COMPTE"
+
+[node name="StatusLabel" type="Label" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+clip_contents = true
+
+[node name="BackToLoginButton" type="LinkButton" parent="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer"]
+layout_mode = 2
+text = "Retour à la connexion"
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="VersionLabel" type="Label" parent="LoginPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Version 1.0.0 - Serveur: Localhost"
+horizontal_alignment = 1
+
+[node name="RequestTimer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
+[connection signal="pressed" from="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer/LoginButton" to="." method="_on_login_button_pressed"]
+
+[connection signal="pressed" from="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer/RegisterButton" to="." method="_on_register_button_pressed"]
+
+[connection signal="pressed" from="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer/CreateAccountButton" to="." method="_on_create_account_button_pressed"]
+[connection signal="pressed" from="LoginPanel/VBoxContainer/TabContainer/Inscription/VBoxContainer/BackToLoginButton" to="." method="_on_back_to_login_button_pressed"]
+[connection signal="pressed" from="LoginPanel/VBoxContainer/TabContainer/Connexion/VBoxContainer/ForgotPasswordButton" to="." method="_on_forgot_password_button_pressed"]

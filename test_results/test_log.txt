@@ -1,0 +1,232 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+🎮 FLUMEN MMORPG - Tests via Godot CLI
+======================================
+📋 Arguments reçus: 2
+📁 Répertoire de test: res://test/
+
+🧪 EXÉCUTION DES TESTS COMPLETS FLUMEN
+=====================================
+
+📚 === TESTS DE BASE ===
+  ✅ test_basic_math - PASSED
+  ✅ test_string_operations - PASSED
+  ✅ test_map_coordinates - PASSED
+  ✅ test_spawn_positions - PASSED
+
+🌐 === TESTS BUGS WEBSOCKET ===
+=== Tests WebSocket Bugs ===
+🧪 Démarrage des tests WebSocket Bugs...
+
+🔍 Test: GameManager WebSocket Connection Bug
+✅ WebSocketManager ne devrait pas être dans les Autoloads
+✅ WebSocketManager devrait être trouvé dans la scène principale
+
+📨 Test: WebSocket Message Format Bug
+✅ Message devrait avoir un type
+✅ Message devrait avoir des données
+✅ Message devrait avoir un timestamp
+
+⏱️ Test: WebSocket Timeout Handling
+✅ Timeout devrait être détecté après 3 secondes
+
+📊 === RÉSULTATS ===
+Assertions: 6
+Échecs: 0
+✅ Tous les tests WebSocket ont réussi!
+
+🗺️ === TESTS BUGS MAP TRANSITION ===
+=== Tests Map Transition Bugs ===
+🧪 Démarrage des tests Map Transition Bugs...
+
+🗺️ Test: Negative Coordinates Bug
+✅ Coordonnée origine
+✅ Coordonnée négative X
+✅ Coordonnée négative Y
+
+🧭 Test: Transition Direction Calculation Bug
+✅ Direction de (0, 0) vers (1, 0)
+✅ Direction de (0, 0) vers (-1, 0)
+✅ Direction de (0, 0) vers (0, 1)
+✅ Direction de (0, 0) vers (0, -1)
+
+🔄 Test: Adjacent Maps Calculation Bug
+✅ Devrait avoir 4 cartes adjacentes
+✅ Carte (1, 0) devrait être adjacente
+✅ Carte (-1, 0) devrait être adjacente
+✅ Carte (0, 1) devrait être adjacente
+✅ Carte (0, -1) devrait être adjacente
+
+📊 === RÉSULTATS ===
+Assertions: 12
+Échecs: 0
+✅ Tous les tests Map Transition ont réussi!
+
+🚨 === TESTS BUGS CRITIQUES ===
+=== Tests Critical Bugs ===
+🧪 Démarrage des tests Critical Bugs...
+
+➗ Test: Division by Zero Bug
+✅ Division devrait être >= 0
+✅ Division devrait être >= 0
+✅ Division protégée devrait retourner 10
+
+🔐 Test: Authentication Timeout Bug
+✅ Timeout d'authentification devrait être détecté
+
+🌐 Test: Extreme Coordinates Bug
+✅ Nom devrait contenir X: 0
+✅ Nom devrait contenir Y: 0
+✅ Nom devrait contenir X: 999999
+✅ Nom devrait contenir Y: 999999
+✅ Nom devrait contenir X: -999999
+✅ Nom devrait contenir Y: -999999
+
+📊 === RÉSULTATS ===
+Assertions: 10
+Échecs: 0
+✅ Tous les tests Critical Bugs ont réussi!
+
+🔧 === TESTS WORKING SIMPLE ===
+Initialisation du test: TestWorkingSimple
+=== Démarrage des tests ===
+Running test_basic_math...
+Running test_string_operations...
+Running test_vector_math...
+Running test_coordinate_system...
+=== Résultats ===
+Assertions: 12
+Échecs: 0
+✅ Tous les tests ont réussi!
+
+🔐 === TESTS AUTHENTIFICATION ===
+=== Tests Authentication Flow ===
+🧪 Démarrage des tests Authentication Flow...
+
+🔐 Test: Credentials Validation
+✅ Identifiants valides devraient être acceptés
+✅ Identifiants invalides devraient être rejetés
+✅ Identifiants invalides devraient être rejetés
+✅ Identifiants invalides devraient être rejetés
+✅ Identifiants invalides devraient être rejetés
+
+📊 Test: Authentication States
+✅ État initial devrait être IDLE
+✅ État devrait passer à CONNECTING
+✅ État devrait passer à AUTHENTICATED
+
+⚠️ Test: Authentication Error Handling
+✅ Erreur INVALID_CREDENTIALS devrait être gérée
+✅ Erreur devrait avoir un code
+✅ Erreur devrait avoir un message
+✅ Erreur SERVER_ERROR devrait être gérée
+✅ Erreur devrait avoir un code
+✅ Erreur devrait avoir un message
+✅ Erreur TIMEOUT devrait être gérée
+✅ Erreur devrait avoir un code
+✅ Erreur devrait avoir un message
+
+📊 === RÉSULTATS ===
+Assertions: 17
+Échecs: 0
+✅ Tous les tests Authentication Flow ont réussi!
+
+🗺️ === TESTS CHANGEMENT DE CARTE ===
+=== Tests Map Change Flow ===
+🧪 Démarrage des tests Map Change Flow...
+
+🗺️ Test: Map Transition Validation
+✅ Transition (0, 0) vers (1, 0) devrait être valide
+✅ Direction calculée devrait être right
+✅ Transition (0, 0) vers (-1, 0) devrait être valide
+✅ Direction calculée devrait être left
+✅ Transition (0, 0) vers (0, 1) devrait être valide
+✅ Direction calculée devrait être up
+✅ Transition (0, 0) vers (0, -1) devrait être valide
+✅ Direction calculée devrait être down
+
+📊 Test: Map Change States
+✅ État initial devrait être IDLE
+✅ État devrait passer à REQUESTING
+✅ État devrait passer à COMPLETED
+
+📍 Test: Spawn Position Calculation
+✅ Position X pour direction right
+✅ Position X dans les limites
+✅ Position Y dans les limites
+✅ Position X pour direction left
+✅ Position X dans les limites
+✅ Position Y dans les limites
+✅ Position Y pour direction up
+✅ Position X dans les limites
+✅ Position Y dans les limites
+✅ Position Y pour direction down
+✅ Position X dans les limites
+✅ Position Y dans les limites
+
+📊 === RÉSULTATS ===
+Assertions: 23
+Échecs: 0
+✅ Tous les tests Map Change Flow ont réussi!
+
+🎯 === TESTS DÉPLACEMENT JOUEUR ===
+=== Tests Player Movement ===
+🧪 Démarrage des tests Player Movement...
+
+🎯 Test: Grid Based Movement
+✅ Déplacement right devrait être correct
+✅ Position après déplacement right devrait être alignée
+✅ Déplacement left devrait être correct
+✅ Position après déplacement left devrait être alignée
+✅ Déplacement up devrait être correct
+✅ Position après déplacement up devrait être alignée
+✅ Déplacement down devrait être correct
+✅ Position après déplacement down devrait être alignée
+
+✅ Test: Movement Validation
+✅ Mouvement de (96.0, 96.0) vers (128.0, 96.0) devrait être valide
+✅ Mouvement de (96.0, 96.0) vers (64.0, 96.0) devrait être valide
+✅ Mouvement de (96.0, 96.0) vers (96.0, 64.0) devrait être valide
+✅ Mouvement de (96.0, 96.0) vers (96.0, 128.0) devrait être valide
+✅ Mouvement de (96.0, 96.0) vers (192.0, 96.0) devrait être invalide
+✅ Mouvement de (96.0, 96.0) vers (128.0, 128.0) devrait être invalide
+✅ Mouvement de (96.0, 96.0) vers (-32.0, 96.0) devrait être invalide
+
+📊 Test: Movement States
+✅ État initial devrait être IDLE
+✅ État devrait passer à MOVING
+✅ État devrait passer à COMPLETED
+
+🎬 Test: Movement Animation
+✅ Interpolation à 0.0 devrait être correcte
+✅ Interpolation à 0.5 devrait être correcte
+✅ Interpolation à 1.0 devrait être correcte
+
+📊 === RÉSULTATS ===
+Assertions: 21
+Échecs: 0
+✅ Tous les tests Player Movement ont réussi!
+
+==================================================
+📊 RÉSULTATS FINAUX COMPLETS
+==================================================
+✅ Basic Demo: 4/4 (100.0%)
+✅ WebSocket Bugs: 6/6 (100.0%)
+✅ Map Transition Bugs: 12/12 (100.0%)
+✅ Critical Bugs: 10/10 (100.0%)
+✅ Working Simple: 12/12 (100.0%)
+✅ Authentication Flow: 17/17 (100.0%)
+✅ Map Change Flow: 23/23 (100.0%)
+✅ Player Movement: 21/21 (100.0%)
+--------------------------------------------------
+📈 TOTAL GÉNÉRAL:
+   Tests: 105
+   Réussis: 105
+   Échoués: 0
+   Taux de réussite: 100.00%
+
+🎉 TOUS LES TESTS ONT RÉUSSI!
+   Le système Flumen est stable et sans régressions!
+==================================================
+AuthManager: Initializing...
+AuthManager: Using server URL: http://server.flumen.local:9090/api/v1

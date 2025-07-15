@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxn0ijl1fhkht"]
+
+[ext_resource type="Script" path="res://game/ui/StatsPanel.gd" id="1_statsPanelScript"]
+
+[node name="StatsPanel" type="PanelContainer"]
+script = ExtResource("1_statsPanelScript")
+custom_minimum_size = Vector2(420, 420)
+modulate = Color(1, 1, 1, 0.95)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Caractéristiques"
+horizontal_alignment = 1
+
+[node name="PointsLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Points à distribuer : 0"
+
+[node name="StatsList" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="ValidateButton" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Valider"
+
+[node name="ResetButton" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Réinitialiser"
+
+[node name="CloseButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -36.0
+offset_bottom = 36.0
+text = "✕" 

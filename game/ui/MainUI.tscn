@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bt1k115p1elgu"]
+
+[node name="MainUI" type="Control"]
+
+[node name="StatsButton" type="Button" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -32
+margin_bottom = -32
+rect_min_size = Vector2(64, 64)
+text = "+"
+tooltip_text = "Ouvrir la répartition des points"
+# Style Dofus 1.29 : fond ivoire, bordure dorée (placeholder, à styliser dans l'éditeur)

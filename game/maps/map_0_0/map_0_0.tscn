@@ -1,0 +1,66 @@
+[gd_scene load_steps=8 format=3 uid="uid://v6ok8xr0vdoh"]
+
+[ext_resource type="Texture2D" uid="uid://6g75igas847b" path="res://game/maps/map_0_0/map_0_0.png" id="1_cq63y"]
+[ext_resource type="Script" uid="uid://12ob6c6t3gg2" path="res://game/maps/TransitionArea.gd" id="2_et3oi"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_mv48b"]
+vertices = PackedVector2Array(1892.11, 18.0703, 1903.88, 1065.96, 33.0078, 1059.03, 992.023, 25, 34.9766, 21.0391)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3), PackedInt32Array(3, 2, 4)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(1914, 1076, 23, 1069, 25, 11, 992, 15, 1902, 8)])
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_oy7ei"]
+size = Vector2(166.592, 1020)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n41q8"]
+size = Vector2(64, 1019)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8kjcl"]
+size = Vector2(1915.5, 62)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dharl"]
+size = Vector2(1779, 54)
+
+[node name="Map_0_0" type="Node2D"]
+
+[node name="spawn_point" type="Marker2D" parent="."]
+position = Vector2(758, 605)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("NavigationPolygon_mv48b")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.25, 1.05176)
+texture = ExtResource("1_cq63y")
+centered = false
+
+[node name="Area2D (transition_right)" type="Area2D" parent="."]
+collision_layer = 2
+script = ExtResource("2_et3oi")
+target_map = "map_1_0"
+
+[node name="transition_right" type="CollisionShape2D" parent="Area2D (transition_right)"]
+position = Vector2(1858.3, 545)
+shape = SubResource("RectangleShape2D_oy7ei")
+
+[node name="Area2D (transition_left)" type="Area2D" parent="."]
+script = ExtResource("2_et3oi")
+
+[node name="transition_left" type="CollisionShape2D" parent="Area2D (transition_left)"]
+position = Vector2(37, 514.5)
+shape = SubResource("RectangleShape2D_n41q8")
+
+[node name="Area2D (transition_down)" type="Area2D" parent="."]
+script = ExtResource("2_et3oi")
+
+[node name="transition_down" type="CollisionShape2D" parent="Area2D (transition_down)"]
+position = Vector2(962.75, 1055)
+shape = SubResource("RectangleShape2D_8kjcl")
+
+[node name="Area2D (transition_up)" type="Area2D" parent="."]
+script = ExtResource("2_et3oi")
+
+[node name="transition_up" type="CollisionShape2D" parent="Area2D (transition_up)"]
+position = Vector2(965, 31)
+shape = SubResource("RectangleShape2D_dharl")
+
+[node name="TileMap" type="TileMapLayer" parent="."]

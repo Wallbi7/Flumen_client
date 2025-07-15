@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Hook Git pre-commit pour Flumen MMORPG
+# Lance automatiquement les tests avant chaque commit
+
+echo "🎮 Flumen MMORPG - Pre-commit Hook"
+echo "=================================="
+
+# Vérifier si on est sur Windows (PowerShell disponible)
+if command -v pwsh &> /dev/null; then
+    echo "🔍 Lancement des tests avec PowerShell..."
+    pwsh -ExecutionPolicy Bypass -File "./scripts/run_tests.ps1" -ExitOnFail
+    exit_code=$?
+elif command -v powershell &> /dev/null; then
+    echo "🔍 Lancement des tests avec PowerShell (legacy)..."
+    powershell -ExecutionPolicy Bypass -File "./scripts/run_tests.ps1" -ExitOnFail
+    exit_code=$?
+else
+    echo "❌ PowerShell non trouvé. Impossible de lancer les tests."
+    echo "💡 Installez PowerShell ou lancez manuellement: ./scripts/run_tests.ps1"
+    exit 1
+fi
+
+# Vérifier le résultat des tests
+if [ $exit_code -eq 0 ]; then
+    echo "✅ Tous les tests ont réussi. Commit autorisé."
+    exit 0
+else
+    echo "❌ Des tests ont échoué. Commit annulé."
+    echo "💡 Corrigez les erreurs et recommitez."
+    exit 1
+fi

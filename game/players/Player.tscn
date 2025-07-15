@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://br4tppveiqhcv"]
+
+[ext_resource type="Script" uid="uid://bxfmk37i7qxxp" path="res://game/players/player.gd" id="1_gqiph"]
+[ext_resource type="Texture2D" uid="uid://fboohubc4a8l" path="res://game/players/player_red_86x96.png" id="1_kak5v"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gqiph"]
+size = Vector2(82, 96)
+
+[node name="CharacterBody2D" type="CharacterBody2D" groups=["Player"]]
+collision_mask = 2
+script = ExtResource("1_gqiph")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_kak5v")
+centered = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(44, 49)
+shape = SubResource("RectangleShape2D_gqiph")
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -25.0
+offset_right = 102.0
+offset_bottom = -2.0
+text = "Joueur"
+horizontal_alignment = 1

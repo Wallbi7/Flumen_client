@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/combat/VisualEffectsTest.gd" id="1"]
+
+[node name="VisualEffectsTestScene" type="Node2D"]
+script = ExtResource("1")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Instructions" type="Label" parent="CanvasLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -120.0
+offset_right = 600.0
+offset_bottom = -20.0
+text = "🎮 TEST EFFETS VISUELS DE COMBAT
+
+🎯 Touches de test:
+1 - Sort de base     4 - Poison
+2 - Dégâts          5 - Boost PA  
+3 - Soins           6 - Réduction PM
+
+ESC - Quitter le test"
+theme_override_font_sizes/font_size = 16
+vertical_alignment = 1 

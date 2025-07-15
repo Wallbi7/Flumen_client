@@ -1,0 +1,28 @@
+extends GutTest
+
+# Tests d'intégration pour WebSocket et transitions de cartes
+var websocket_manager: WebSocketManager
+var game_manager: GameManager
+
+func before_each():
+	websocket_manager = WebSocketManager.new()
+	game_manager = GameManager.new()
+
+func after_each():
+	if websocket_manager:
+		websocket_manager.queue_free()
+	if game_manager:
+		game_manager.queue_free()
+
+func test_websocket_manager_initialization():
+	assert_not_null(websocket_manager, "WebSocketManager should be created")
+
+func test_game_state_synchronization():
+	var initial_map = Vector2i(0, 0)
+	var initial_position = Vector2(500, 300)
+	
+	game_manager.current_map_coord = initial_map
+	game_manager.player_position = initial_position
+	
+	assert_eq(game_manager.current_map_coord, initial_map, "Map coordinate should be set")
+	assert_eq(game_manager.player_position, initial_position, "Player position should be set")

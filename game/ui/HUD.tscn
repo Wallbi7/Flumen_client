@@ -1,0 +1,146 @@
+[gd_scene load_steps=6 format=3 uid="uid://bu0dxrp1g7ymw"]
+
+[ext_resource type="Script" path="res://game/ui/HUD.gd" id="1_hudScript"]
+[ext_resource type="PackedScene" uid="uid://bxn0ijl1fhkht" path="res://game/ui/StatsPanel.tscn" id="2_statsPanel"]
+
+[sub_resource type="StyleBoxFlat" id="sbf_main_panel"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.12, 0.12, 0.13, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.35, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+
+[sub_resource type="StyleBoxFlat" id="sbf_hp_orb"]
+bg_color = Color(0.8, 0.2, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.4)
+corner_radius_top_left = 45
+corner_radius_top_right = 45
+corner_radius_bottom_right = 45
+corner_radius_bottom_left = 45
+
+[sub_resource type="StyleBoxFlat" id="sbf_xp_fill"]
+bg_color = Color(0.25, 0.65, 0.9, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="HUD" type="PanelContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -110.0
+offset_right = 300.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("sbf_main_panel")
+script = ExtResource("1_hudScript")
+
+[node name="MainHBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="HPOrb" type="Panel" parent="MainHBox"]
+custom_minimum_size = Vector2(90, 90)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("sbf_hp_orb")
+
+[node name="HPLabel" type="Label" parent="MainHBox/HPOrb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "2578
+2578"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+
+[node name="CenterVBox" type="VBoxContainer" parent="MainHBox"]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="MainHBox/CenterVBox"]
+layout_mode = 2
+text = "Niv. 1"
+horizontal_alignment = 1
+
+[node name="XPBar" type="ProgressBar" parent="MainHBox/CenterVBox"]
+custom_minimum_size = Vector2(350, 22)
+layout_mode = 2
+theme_override_styles/fill = SubResource("sbf_xp_fill")
+value = 75
+show_percentage = true
+
+[node name="XPLabel" type="Label" parent="MainHBox/CenterVBox"]
+layout_mode = 2
+text = "123,456 / 234,567 (75%)"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+
+[node name="RightVBox" type="VBoxContainer" parent="MainHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="PAPMBox" type="HBoxContainer" parent="MainHBox/RightVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="PALabel" type="Label" parent="MainHBox/RightVBox/PAPMBox"]
+layout_mode = 2
+text = "6 PA"
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="PMLabel" type="Label" parent="MainHBox/RightVBox/PAPMBox"]
+layout_mode = 2
+text = "3 PM"
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="Buttons" type="HBoxContainer" parent="MainHBox/RightVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="InventoryButton" type="Button" parent="MainHBox/RightVBox/Buttons"]
+layout_mode = 2
+text = "I"
+
+[node name="StatsButton" type="Button" parent="MainHBox/RightVBox/Buttons"]
+layout_mode = 2
+text = "+"
+
+[node name="SpellsButton" type="Button" parent="MainHBox/RightVBox/Buttons"]
+layout_mode = 2
+text = "S"
+
+[node name="QuestsButton" type="Button" parent="MainHBox/RightVBox/Buttons"]
+layout_mode = 2
+text = "Q"
+
+[node name="OptionsButton" type="Button" parent="MainHBox/RightVBox/Buttons"]
+layout_mode = 2
+text = "O"
+
+[node name="StatsPanel" parent="." instance=ExtResource("2_statsPanel")]
+visible = false 

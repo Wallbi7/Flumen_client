@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8waw6x7y201a"]
+
+[ext_resource type="Script" path="res://game/combat/CombatTest.gd" id="1_combat_test"]
+
+[node name="CombatTestScene" type="Node2D"]
+
+[node name="CombatTest" type="Node" parent="."]
+script = ExtResource("1_combat_test")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TestInstructions" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -150.0
+offset_right = 500.0
+offset_bottom = -10.0
+text = "=== TESTS DE COMBAT FLUMEN ===
+
+TOUCHES RAPIDES:
+C: Test 1v1 basique
+H: Aide complète
+
+AVEC CTRL:
+Ctrl+1: Test 1v1 basique
+Ctrl+2: Test 2v2 équilibré  
+Ctrl+3: Test boss 3v1
+Ctrl+B: Benchmark performance
+Ctrl+T: Lancer tous les tests
+Ctrl+A: Mode automatique
+
+DANS LE JEU:
+T: Test de combat rapide
+
+Système de combat tour par tour
+avec grille isométrique 86x43px"
+vertical_alignment = 1 

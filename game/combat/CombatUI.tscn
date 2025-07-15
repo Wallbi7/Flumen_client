@@ -1,0 +1,112 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7w8m5n3x2c4q"]
+
+[ext_resource type="Script" path="res://game/combat/CombatUI.gd" id="1_combat_ui"]
+
+[node name="CombatUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_combat_ui")
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = -10.0
+
+[node name="ResourcesPanel" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="APContainer" type="VBoxContainer" parent="MainContainer/ResourcesPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="APLabel" type="Label" parent="MainContainer/ResourcesPanel/APContainer"]
+layout_mode = 2
+text = "PA: 6/6"
+horizontal_alignment = 1
+
+[node name="APBar" type="ProgressBar" parent="MainContainer/ResourcesPanel/APContainer"]
+layout_mode = 2
+max_value = 6.0
+value = 6.0
+show_percentage = false
+
+[node name="MPContainer" type="VBoxContainer" parent="MainContainer/ResourcesPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MPLabel" type="Label" parent="MainContainer/ResourcesPanel/MPContainer"]
+layout_mode = 2
+text = "PM: 3/3"
+horizontal_alignment = 1
+
+[node name="MPBar" type="ProgressBar" parent="MainContainer/ResourcesPanel/MPContainer"]
+layout_mode = 2
+max_value = 3.0
+value = 3.0
+show_percentage = false
+
+[node name="TurnOrderPanel" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MainContainer/TurnOrderPanel"]
+layout_mode = 2
+text = "Ordre des tours"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/TurnOrderPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+
+[node name="TurnOrderList" type="VBoxContainer" parent="MainContainer/TurnOrderPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActionsPanel" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="AttackButton" type="Button" parent="MainContainer/ActionsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Attaque (3 PA)"
+
+[node name="SpellButton" type="Button" parent="MainContainer/ActionsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sort (2 PA)"
+
+[node name="ItemButton" type="Button" parent="MainContainer/ActionsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Objet (1 PA)"
+
+[node name="PassButton" type="Button" parent="MainContainer/ActionsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Passer (0 PA)"
+
+[node name="EndTurnButton" type="Button" parent="MainContainer/ActionsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fin de tour"
+
+[node name="InfoPanel" type="HBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="TimerLabel" type="Label" parent="MainContainer/InfoPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Temps: 00:30"
+horizontal_alignment = 1
+
+[node name="PhaseLabel" type="Label" parent="MainContainer/InfoPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Phase: Placement"
+horizontal_alignment = 1 
