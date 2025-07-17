@@ -35,16 +35,27 @@ func _ready():
 
 ## GESTION DES ENTRÉES UTILISATEUR
 ## ================================
-func _input(event):
+func _unhandled_input(event):
 	"""
-	Traite les entrées utilisateur pour le déplacement.
-	Actuellement: clic droit pour se déplacer vers la position de la souris.
+	Traite les entrées utilisateur pour le déplacement SEULEMENT si elles ne sont pas gérées par d'autres nœuds.
+	Cela permet aux monstres (Area2D) d'avoir la priorité sur les clics.
+	Actuellement: clic droit pour se déplacer, clic gauche pour actions.
 	"""
-	# Déplacement par clic droit de souris
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+	# Ignorer l'événement s'il a déjà été marqué comme "handled" par un autre nœud (ex: Monster/Area2D)
+	# Certaines classes d'InputEvent (p. ex. MouseMotion) ne possèdent pas la méthode is_handled().
+	if event.has_method("is_handled") and event.is_handled():
+		return
+	if event is InputEventMouseButton and event.pressed:
 		var mouse_pos = get_global_mouse_position()
-		print("[Player] Clic droit détecté à la position: ", mouse_pos)
-		move_to_position(mouse_pos)
+		
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			# Déplacement par clic droit de souris
+			print("[Player] Clic droit détecté à la position: ", mouse_pos)
+			move_to_position(mouse_pos)
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			# Clic gauche sur du vide (les monstres ont déjà été vérifiés)
+			print("[Player] Clic gauche sur du vide à la position: ", mouse_pos)
+			# Ici on pourrait ajouter d'autres actions (ramasser objet, etc.)
 
 ## COMMANDE DE DÉPLACEMENT
 ## ========================

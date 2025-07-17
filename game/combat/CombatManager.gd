@@ -134,7 +134,13 @@ func _create_combat_grid():
 	if not is_instance_valid(combat_grid):
 		print("[CombatManager] 🔧 Création de la grille de combat...")
 		
-		combat_grid = preload("res://game/combat/CombatGrid.gd").new()
+		# Charger la scène CombatGrid
+		var grid_scene = preload("res://game/combat/CombatGrid.tscn")
+		if grid_scene:
+			combat_grid = grid_scene.instantiate()
+		else:
+			print("[CombatManager] ❌ Impossible de charger CombatGrid.tscn")
+			return
 		
 		# Trouver la scène principale pour ajouter la grille
 		var main_scene = get_tree().current_scene

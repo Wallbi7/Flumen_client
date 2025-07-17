@@ -25,15 +25,52 @@ var auth_token := ""
 var current_user := ""
 var _last_error_log_time := 0 # En millisecondes, pour limiter la fréquence des logs d'erreur
 
+# Mécanisme de retry automatique
+var _retry_enabled := false
+var _retry_timer: Timer
+var _retry_interval := 3.0  # Interval en secondes entre les tentatives
+var _max_retry_attempts := 0  # 0 = retry infini
+var _current_retry_count := 0
+
 func _ready():
 	print("[WebSocketManager] _ready() appelé.")
 	# Utiliser l'URL depuis la configuration
 	url = ServerConfig.websocket_url
 	print("[WebSocketManager] Using WebSocket URL: ", url)
-	# Ne pas se connecter automatiquement, attendre l'authentification
+	
+	# Créer le timer pour les tentatives de reconnexion
+	_retry_timer = Timer.new()
+	_retry_timer.wait_time = _retry_interval
+	_retry_timer.timeout.connect(_retry_connection)
+	_retry_timer.one_shot = true
+	add_child(_retry_timer)
+	
+	print("[WebSocketManager] Mécanisme de retry initialisé (interval: ", _retry_interval, "s)")
 
 func connect_with_auth(token: String):
 	auth_token = token
+	_connect_to_server()
+
+func connect_with_auth_retry(token: String, enable_retry: bool = true, retry_interval: float = 3.0, max_attempts: int = 0):
+	"""
+	Connecte au serveur avec retry automatique si la connexion échoue
+	
+	Args:
+		token: Token d'authentification JWT
+		enable_retry: Active le retry automatique (défaut: true)
+		retry_interval: Interval entre les tentatives en secondes (défaut: 3.0)
+		max_attempts: Nombre max de tentatives (0 = infini, défaut: 0)
+	"""
+	auth_token = token
+	_retry_enabled = enable_retry
+	_retry_interval = retry_interval
+	_max_retry_attempts = max_attempts
+	_current_retry_count = 0
+	
+	if _retry_timer:
+		_retry_timer.wait_time = _retry_interval
+	
+	print("[WebSocketManager] Connexion avec retry - Enabled: ", enable_retry, ", Interval: ", retry_interval, "s, Max: ", max_attempts)
 	_connect_to_server()
 
 func _connect_to_server():
@@ -42,7 +79,15 @@ func _connect_to_server():
 		emit_signal("connection_error", "Pas de token d'authentification")
 		return
 	
-	print("[WebSocketManager] Tentative de connexion WebSocket...")
+	_current_retry_count += 1
+	var retry_text = ""
+	if _retry_enabled and _current_retry_count > 1:
+		retry_text = " (Tentative " + str(_current_retry_count)
+		if _max_retry_attempts > 0:
+			retry_text += "/" + str(_max_retry_attempts)
+		retry_text += ")"
+	
+	print("[WebSocketManager] Tentative de connexion WebSocket...", retry_text)
 	
 	var full_url = url + "?token=" + auth_token
 	print("[WebSocketManager] Connexion à l'URL: ", full_url)
@@ -54,8 +99,42 @@ func _connect_to_server():
 	if err != OK:
 		print("[WebSocketManager] Erreur de connexion au WebSocket :", err)
 		emit_signal("connection_error", "Erreur de connexion: " + str(err))
+		_schedule_retry_if_enabled()
 	else:
 		print("[WebSocketManager] connect_to_url() appelé avec succès, attente de la connexion...")
+
+func _schedule_retry_if_enabled():
+	"""
+	Programme une nouvelle tentative si le retry est activé
+	"""
+	if not _retry_enabled:
+		print("[WebSocketManager] Retry désactivé, arrêt des tentatives")
+		return
+	
+	if _max_retry_attempts > 0 and _current_retry_count >= _max_retry_attempts:
+		print("[WebSocketManager] Nombre maximum de tentatives atteint (", _max_retry_attempts, "), arrêt du retry")
+		_retry_enabled = false
+		return
+	
+	print("[WebSocketManager] Nouvelle tentative programmée dans ", _retry_interval, " secondes...")
+	if _retry_timer:
+		_retry_timer.start()
+
+func _retry_connection():
+	"""
+	Appelé par le timer pour tenter une nouvelle connexion
+	"""
+	print("[WebSocketManager] === TENTATIVE DE RECONNEXION ===")
+	_connect_to_server()
+
+func stop_retry():
+	"""
+	Arrête le mécanisme de retry
+	"""
+	_retry_enabled = false
+	if _retry_timer:
+		_retry_timer.stop()
+	print("[WebSocketManager] Mécanisme de retry arrêté")
 
 func _process(_delta):
 	if ws == null:
@@ -69,6 +148,9 @@ func _process(_delta):
 		WebSocketPeer.STATE_OPEN:
 			if not _is_connected:
 				_is_connected = true
+				_retry_enabled = false  # Arrêter le retry quand connexion réussie
+				if _retry_timer:
+					_retry_timer.stop()
 				print("[WebSocketManager] ✅ Connecté avec succès!")
 				emit_signal("connected")
 			
@@ -88,12 +170,18 @@ func _process(_delta):
 			
 				if code != 1000: # 1000 = Close normal
 					emit_signal("connection_error", "Connexion perdue (code: " + str(code) + ")")
+					# Programmer un retry si la connexion était établie puis perdue
+					if _retry_enabled:
+						_schedule_retry_if_enabled()
 			else: # La connexion n'a jamais été établie
 				var now := Time.get_ticks_msec()
 				if now - _last_error_log_time > 1000:
 					print("[WebSocketManager] Connexion WebSocket échouée, code: ", code, ", raison: ", reason)
 					_last_error_log_time = now
 					emit_signal("connection_error", "Échec de la connexion WebSocket (code: %s)" % str(code))
+				
+				# Programmer un retry pour cette tentative échouée
+				_schedule_retry_if_enabled()
 
 func _on_message_received(message: String):
 	print("[WebSocketManager] Message reçu: ", message)
@@ -171,7 +259,9 @@ func _handle_map_changed(data):
 
 func _handle_combat_started(data):
 	"""Gère la réception des données initiales d'un combat."""
-	print("[WebSocketManager] ✅ Ordre de démarrage de combat reçu du serveur.")
+	print("[WebSocketManager] 🥊 COMBAT_STARTED reçu du serveur !")
+	print("[WebSocketManager] 🔍 DEBUG - Type de données: ", typeof(data))
+	print("[WebSocketManager] 🔍 DEBUG - Données reçues: ", str(data))
 	emit_signal("combat_started", data)
 
 func send_text(message: String):

@@ -49,5 +49,45 @@
 
 ---
 
+## 🔧 **LEVEL 1 FIX : Retry Automatique de Connexion**
+
+### Task: **Connexion Client-Serveur Automatique**
+- **Status**: ✅ Complete
+- **Type**: Bug Fix - Level 1 Quick Fix
+- **Durée**: ~20 minutes
+
+#### **📌 Problème**
+Le client ne se connectait pas quand le serveur était lancé après le client. La connexion était tentée une seule fois au démarrage, sans retry si le serveur n'était pas disponible.
+
+#### **🔍 Cause**
+- Connexion WebSocket tentée **une seule fois** dans `main.gd`
+- Pas de mécanisme de retry automatique dans `WebSocketManager.gd`
+- Fallback hors ligne après 5 secondes seulement
+
+#### **🛠️ Solution**
+- ✅ **Nouveau mécanisme de retry** dans `WebSocketManager.gd` :
+  - Fonction `connect_with_auth_retry()` avec paramètres configurables
+  - Timer automatique toutes les 3 secondes 
+  - Retry infini jusqu'à connexion réussie
+  - Arrêt automatique du retry quand connexion établie
+
+- ✅ **GameManager mis à jour** : 
+  - Utilise `connect_with_auth_retry()` au lieu de `connect_with_auth()`
+  - Retry activé par défaut avec interval 3 secondes
+
+- ✅ **Fallback ajusté** :
+  - Délai passé de 5 à 15 secondes pour permettre les reconnexions
+  - Messages informatifs sur le statut de connexion
+
+#### **✅ Fichiers modifiés**
+- `game/network/WebSocketManager.gd` : Ajout mécanisme retry automatique
+- `game/GameManager.gd` : Utilisation nouvelle méthode retry 
+- `game/main.gd` : Amélioration feedback utilisateur et délai fallback
+
+#### **🧪 Test**
+Client se connecte automatiquement quand serveur devient disponible, sans intervention utilisateur nécessaire.
+
+---
+
 ## 🏆 **Résultat Final**
 Le système est maintenant stable, robuste et le flux d'authentification est complet. Le client peut se connecter, valider son token, être redirigé si nécessaire, et récupérer les données des personnages avec succès.

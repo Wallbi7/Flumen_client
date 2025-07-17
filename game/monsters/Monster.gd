@@ -3,6 +3,14 @@ class_name Monster
 
 ## Classe Monster pour l'affichage des monstres côté client
 
+# ================================
+# SIGNAUX POUR INTERACTION COMBAT - RECOMPILATION FORCÉE
+# ================================
+signal monster_clicked(monster: Monster)
+signal monster_right_clicked(monster: Monster) 
+signal monster_hovered(monster: Monster, is_hovering: bool)
+signal monster_died(monster: Monster)
+
 @export var monster_id: String
 @export var monster_type: String
 @export var monster_name: String
@@ -145,34 +153,54 @@ func _ready():
 
 func setup_interaction_area():
 	"""Configure la zone d'interaction du monstre"""
-	interaction_area = Area2D.new()
-	interaction_area.name = "InteractionArea"
+	# Utiliser l'Area2D existante du .tscn au lieu d'en créer une nouvelle
+	interaction_area = $Area2D
 	
-	# Configuration pour détecter les clics
+	if not interaction_area:
+		print("[Monster] ⚠️ Area2D non trouvée dans le .tscn")
+		return
+	
+	# CONFIGURATION CRITIQUE POUR DÉTECTER LES CLICS
+	interaction_area.set_pickable(true)  # Force l'activation
 	interaction_area.input_pickable = true
 	interaction_area.monitoring = true
 	interaction_area.monitorable = true
 	
-	# S'assurer que l'area est au premier plan pour les événements
+	# Priority élevée pour être détecté en premier
+	interaction_area.priority = 10.0
+	
+	# Configuration des couches de collision
 	interaction_area.collision_layer = 1
 	interaction_area.collision_mask = 1
-	interaction_area.priority = 1.0
 	
-	var collision_shape = CollisionShape2D.new()
-	var shape = RectangleShape2D.new()
-	shape.size = Vector2(80, 80)  # Zone plus grande pour faciliter les clics
-	collision_shape.shape = shape
-	collision_shape.name = "CollisionShape2D"
+	# Force la mise à jour immédiate
+	interaction_area.set_process_mode(Node.PROCESS_MODE_ALWAYS)
 	
-	interaction_area.add_child(collision_shape)
-	add_child(interaction_area)
+	# NOUVEAU: Attacher le script spécialisé pour améliorer la détection des clics
+	if not interaction_area.get_script():
+		var area_script = preload("res://game/monsters/MonsterAreaScript.gd")
+		interaction_area.set_script(area_script)
+		print("[Monster] ✅ Script spécialisé attaché à l'Area2D pour meilleure détection")
 	
-	# Connexion des signaux
-	interaction_area.mouse_entered.connect(_on_mouse_entered)
-	interaction_area.mouse_exited.connect(_on_mouse_exited)
-	interaction_area.input_event.connect(_on_area_input_event)
+	# Vérification de la CollisionShape2D
+	var collision_shape = interaction_area.get_node("CollisionShape2D")
+	if collision_shape and collision_shape.shape:
+		print("[Monster] ✅ CollisionShape2D trouvée avec shape: ", collision_shape.shape.get_class())
+		collision_shape.disabled = false
+	else:
+		print("[Monster] ⚠️ Problème avec CollisionShape2D")
 	
-	print("[Monster] Zone d'interaction configurée pour: ", monster_name, " - Taille: 80x80")
+	# Connexion des signaux supplémentaires (input_event déjà connecté dans .tscn)
+	if not interaction_area.mouse_entered.is_connected(_on_mouse_entered):
+		interaction_area.mouse_entered.connect(_on_mouse_entered)
+	if not interaction_area.mouse_exited.is_connected(_on_mouse_exited):
+		interaction_area.mouse_exited.connect(_on_mouse_exited)
+	
+	# Debug final
+	print("[Monster] 🔧 Configuration Area2D: input_pickable=", interaction_area.input_pickable, 
+		  " priority=", interaction_area.priority, " monitoring=", interaction_area.monitoring)
+	
+	print("[Monster] Zone d'interaction configurée pour: ", monster_name, " - Utilisation Area2D existante")
 
 func _on_mouse_entered():
 	"""Appelé quand la souris survole le monstre"""
@@ -192,31 +220,45 @@ func _on_mouse_exited():
 	var tween = create_tween()
 	tween.tween_property(self, "modulate", Color.WHITE, 0.1)
 
-func _on_area_input_event(viewport: Node, event: InputEvent, shape_idx: int):
-	"""Gère les clics sur le monstre"""
-	print("[Monster] Événement reçu sur ", monster_name, " - Type: ", event.get_class())
+# Fonction correspondant à la connexion dans le .tscn
+func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int):
+	"""Gère les clics sur le monstre (connexion .tscn)"""
 	
-	if event is InputEventMouseButton and event.pressed:
-		print("[Monster] Clic détecté sur ", monster_name, " - Bouton: ", event.button_index)
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			# Clic gauche = déplacement + attaque
-			print("[Monster] Émission du signal monster_clicked pour: ", monster_name)
-			monster_clicked.emit(self)
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			# Clic droit = menu contextuel (future feature)
-			print("[Monster] Émission du signal monster_right_clicked pour: ", monster_name)
-			monster_right_clicked.emit(self)
+	# Debug détaillé pour tous les événements importants
+	if event is InputEventMouseButton:
+		print("[Monster] 🖱️ ÉVÉNEMENT CLIC sur ", monster_name, " - Bouton: ", event.button_index, " Pressed: ", event.pressed, " Position: ", event.position)
+		if event.pressed:
+			print("[Monster] ✅ CLIC DÉTECTÉ sur ", monster_name, " - Bouton: ", event.button_index)
+			
+			# Marquer l'événement comme géré pour éviter la propagation
+			get_viewport().set_input_as_handled()
+			
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				# Clic gauche = déplacement + attaque
+				print("[Monster] 🔥 ÉMISSION SIGNAL monster_clicked pour: ", monster_name)
+				monster_clicked.emit(self)
+			elif event.button_index == MOUSE_BUTTON_RIGHT:
+				# Clic droit = menu contextuel (future feature)
+				print("[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: ", monster_name)
+				monster_right_clicked.emit(self)
+		else:
+			print("[Monster] 📤 Relâchement bouton ", event.button_index, " sur ", monster_name)
+	elif event is InputEventMouseMotion:
+		# Log motion seulement si debug activé
+		if false:  # Changer à true pour debug motion
+			print("[Monster] 🔍 Motion sur ", monster_name, " - Position: ", event.position)
+	else:
+		print("[Monster] 🤔 Événement inconnu sur ", monster_name, ": ", event.get_class())
+
+# Garder l'ancienne fonction pour compatibilité (peut être supprimée plus tard)
+func _on_area_input_event(viewport: Node, event: InputEvent, shape_idx: int):
+	"""Ancienne fonction - redirection vers la nouvelle"""
+	_on_area_2d_input_event(viewport, event, shape_idx)
 
 func get_interaction_position() -> Vector2:
 	"""Retourne la position d'interaction (adjacente au monstre)"""
 	# Position adjacente pour le combat
 	return global_position + Vector2(-50, 0)  # À gauche du monstre
-
-# Signaux
-signal monster_clicked(monster: Monster)
-signal monster_right_clicked(monster: Monster)
-signal monster_hovered(monster: Monster, is_hovering: bool)
-signal monster_died(monster: Monster)
 
 func _on_monster_died():
 	monster_died.emit(self) 

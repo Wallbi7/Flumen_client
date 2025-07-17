@@ -41,6 +41,12 @@ var character_classes: Array = []         # Informations sur les classes disponi
 ## ====================================
 var monster_tooltip: Control = null       # Interface tooltip pour les monstres
 var monsters_on_map: Array[Monster] = []  # Liste des monstres sur la map actuelle
+# Menu contextuel pour les monstres
+var monster_context_menu: PopupMenu = null
+# Monstre actuellement sélectionné via le menu contextuel
+var context_menu_target_monster: Monster = null
+# Monstre que le joueur s’apprête à attaquer (déplacement en cours)
+var attacking_monster: Monster = null
 
 ## VARIABLES DE SPAWN
 ## ==================
@@ -253,6 +259,7 @@ func connect_to_game_server():
 	"""
 	Initie la connexion au serveur de jeu avec le token d'authentification.
 	Utilise le token JWT stocké dans l'AuthManager pour s'authentifier.
+	Inclut maintenant un mécanisme de retry automatique.
 	"""
 	print("[GameManager] === CONNEXION AU SERVEUR DE JEU ===")
 	
@@ -283,8 +290,10 @@ func connect_to_game_server():
 	# =========================================
 	var token = AuthManager._access_token if AuthManager else ""
 	if token != "":
-		print("[GameManager] ✅ Token trouvé, lancement de la connexion...")
-		manager.connect_with_auth(token)
+		print("[GameManager] ✅ Token trouvé, lancement de la connexion avec retry automatique...")
+		# Utiliser la nouvelle méthode avec retry automatique
+		# Retry toutes les 3 secondes, sans limite de tentatives
+		manager.connect_with_auth_retry(token, true, 3.0, 0)
 	else:
 		print("[GameManager] ❌ Pas de token d'authentification, connexion impossible")
 
@@ -464,6 +473,8 @@ func _on_current_player_moved(new_position: Vector2):
 	if manager and manager.has_method("send_player_move"):
 		manager.send_player_move(new_position.x, new_position.y, current_map_id)
 		print("[GameManager] Position envoyée au serveur: (", new_position.x, ", ", new_position.y, ")")
+	# Vérifier si on doit démarrer le combat après déplacement
+	_start_combat_if_ready()
 
 func _on_player_joined(player_data):
 	"""
@@ -945,28 +956,37 @@ func connect_monster_signals(monster: Monster):
 		print("[GameManager] ❌ Tentative de connexion sur un monstre invalide.")
 		return
 	
+	print("[GameManager] 🔍 DEBUG - Signaux disponibles sur ", monster.monster_name, ":")
+	var signal_list = monster.get_signal_list()
+	for sig in signal_list:
+		print("  - ", sig.name)
+	
 	# Connecter le clic pour initier le combat
-	if monster.has_user_signal("monster_clicked"):
+	if monster.has_signal("monster_clicked"):
 		# Utiliser call_deferred pour éviter les bugs si le signal est émis dans la même frame
 		monster.connect("monster_clicked", Callable(self, "_on_monster_clicked"))
+		print("[GameManager] ✅ Signal 'monster_clicked' connecté.")
 	else:
 		print("[GameManager] ⚠️ Le signal 'monster_clicked' est manquant sur la scène Monster.")
 	
 	# Connecter le clic droit pour initier le combat
-	if monster.has_user_signal("monster_right_clicked"):
+	if monster.has_signal("monster_right_clicked"):
 		monster.connect("monster_right_clicked", Callable(self, "_on_monster_right_clicked"))
+		print("[GameManager] ✅ Signal 'monster_right_clicked' connecté.")
 	else:
 		print("[GameManager] ⚠️ Le signal 'monster_right_clicked' est manquant sur la scène Monster.")
 		
 	# Connecter le survol pour le tooltip
-	if monster.has_user_signal("monster_hovered"):
+	if monster.has_signal("monster_hovered"):
 		monster.connect("monster_hovered", Callable(self, "_on_monster_hovered"))
+		print("[GameManager] ✅ Signal 'monster_hovered' connecté.")
 	else:
 		print("[GameManager] ⚠️ Le signal 'monster_hovered' est manquant sur la scène Monster.")
 		
 	# Connecter la mort du monstre
-	if monster.has_user_signal("monster_died"):
+	if monster.has_signal("monster_died"):
 		monster.connect("monster_died", Callable(self, "_on_monster_died"))
+		print("[GameManager] ✅ Signal 'monster_died' connecté.")
 	else:
 		print("[GameManager] ⚠️ Le signal 'monster_died' est manquant sur la scène Monster.")
 
@@ -985,26 +1005,15 @@ func _clear_monsters():
 		monster_tooltip.hide_tooltip()
 
 func _on_monster_clicked(monster: Monster):
-	"""Gère le clic gauche sur un monstre pour lancer le combat."""
-	print("[GameManager] ⚔️ Clic gauche sur monstre reçu pour lancer le combat: ", monster.monster_name)
-	
-	if combat_manager and not combat_manager.is_combat_active:
-		start_combat_with_monster(monster)
-	elif combat_manager and combat_manager.is_combat_active:
-		print("[GameManager] ⚠️ Un combat est déjà en cours.")
-	else:
-		print("[GameManager] ❌ Le CombatManager n'est pas prêt.")
+	"""Clic gauche : afficher le menu contextuel du monstre."""
+	print("[GameManager] 📜 Menu contextuel demandé pour: ", monster.monster_name)
+	var mouse_pos = get_viewport().get_mouse_position()
+	_open_monster_context_menu(monster, mouse_pos)
 
 func _on_monster_right_clicked(monster: Monster):
-	"""Gère le clic droit sur un monstre pour lancer le combat."""
-	print("[GameManager] ⚔️ Clic droit sur monstre reçu pour lancer le combat: ", monster.monster_name)
-	
-	if combat_manager and not combat_manager.is_combat_active:
-		start_combat_with_monster(monster)
-	elif combat_manager and combat_manager.is_combat_active:
-		print("[GameManager] ⚠️ Un combat est déjà en cours.")
-	else:
-		print("[GameManager] ❌ Le CombatManager n'est pas prêt.")
+	"""Clic droit : déplacer le joueur vers le monstre puis attaquer."""
+	print("[GameManager] ⚔️ Clic droit sur monstre pour attaque: ", monster.monster_name)
+	_initiate_attack(monster)
 
 func _on_monster_died(monster: Monster):
 	"""Callback quand un monstre meurt"""
@@ -1035,6 +1044,9 @@ func setup_monster_tooltip():
 	if monster_tooltip:
 		return  # Déjà initialisé
 	
+	# S'assurer que le menu contextuel est prêt également
+	setup_monster_context_menu()
+
 	# Charger la scène du tooltip
 	var tooltip_scene = preload("res://game/ui/MonsterTooltip.tscn")
 	monster_tooltip = tooltip_scene.instantiate()
@@ -1256,3 +1268,53 @@ func test_monster_interactions():
 func _on_create_name_input_text_changed(_new_text: String):
 	# TODO: Ajouter une validation en temps réel du nom si nécessaire
 	pass
+
+# ==============================================
+# MENU CONTEXTUEL MONSTRES
+# ==============================================
+
+func setup_monster_context_menu():
+	"""Crée le PopupMenu pour l’interaction des monstres."""
+	if monster_context_menu:
+		return
+	monster_context_menu = PopupMenu.new()
+	monster_context_menu.hide()
+	get_tree().current_scene.add_child(monster_context_menu)
+	monster_context_menu.id_pressed.connect(_on_monster_context_menu_id_pressed)
+	print("[GameManager] Menu contextuel monstre initialisé")
+
+func _open_monster_context_menu(monster: Monster, position: Vector2):
+	setup_monster_context_menu()
+	context_menu_target_monster = monster
+	monster_context_menu.clear()
+	monster_context_menu.add_item("Attaquer", 0)
+	monster_context_menu.position = position
+	monster_context_menu.show()
+
+func _on_monster_context_menu_id_pressed(id: int):
+	monster_context_menu.hide()
+	if id == 0 and context_menu_target_monster:
+		_initiate_attack(context_menu_target_monster)
+	context_menu_target_monster = null
+
+# ==============================================
+# LOGIQUE D’ATTAQUE (clic droit ou menu)
+# ==============================================
+
+func _initiate_attack(monster: Monster):
+	if combat_manager and combat_manager.is_combat_active:
+		print("[GameManager] ⚠️ Un combat est déjà en cours.")
+		return
+	if not current_player or not is_instance_valid(monster):
+		return
+	attacking_monster = monster
+	var target_pos = monster.get_interaction_position()
+	current_player.move_to_position(target_pos)
+	# Si déjà assez proche, tenter immédiatement
+	if current_player.global_position.distance_to(target_pos) < 40.0:
+		_start_combat_if_ready()
+
+func _start_combat_if_ready():
+	if attacking_monster and current_player and current_player.global_position.distance_to(attacking_monster.get_interaction_position()) < 40.0:
+		start_combat_with_monster(attacking_monster)
+		attacking_monster = null

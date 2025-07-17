@@ -1,0 +1,9 @@
+res://game/main.tscn
+res://game/maps/TransitionArea.gd
+res://game/players/Player.tscn
+res://game/maps/map_0_0/map_0_0.tscn
+res://game/ui/CharacterSlot.tscn
+res://game/ui/Chat.tscn
+res://game/GameManager.gd
+res://game/main.gd
+res://game/network/WebSocketManager.gd

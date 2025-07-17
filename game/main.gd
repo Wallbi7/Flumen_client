@@ -49,14 +49,15 @@ func _ready():
 	
 	# LANCEMENT DE LA CONNEXION
 	# ==========================
-	print("[Main] Lancement de la connexion au serveur de jeu...")
+	print("[Main] Lancement de la connexion au serveur de jeu avec retry automatique...")
 	GameManager.connect_to_game_server()
 	
-	# FALLBACK DE SÉCURITÉ
-	# ====================
-	# Si la connexion échoue, charger la map en mode hors ligne après 5 secondes
-	print("[Main] Fallback programmé dans 5 secondes si connexion échoue")
-	get_tree().create_timer(5.0).timeout.connect(_fallback_load_map)
+	# FALLBACK DE SÉCURITÉ AJUSTÉ
+	# ============================
+	# Augmenter le délai pour permettre aux tentatives de retry de fonctionner
+	# Le fallback hors ligne se déclenche maintenant après 15 secondes
+	print("[Main] Fallback hors ligne programmé dans 15 secondes si aucune connexion réussie")
+	get_tree().create_timer(15.0).timeout.connect(_fallback_load_map)
 
 
 
@@ -69,6 +70,20 @@ func _on_websocket_connected():
 	"""
 	print("[Main] === CONNEXION WEBSOCKET RÉUSSIE ===")
 	
+	# Arrêter le mécanisme de retry maintenant que la connexion est établie
+	if websocket_manager and websocket_manager.has_method("stop_retry"):
+		websocket_manager.stop_retry()
+	
+	# Afficher un message de succès à l'utilisateur
+	print("[Main] ✅ Connecté au serveur de jeu avec succès!")
+	
+	# Lancer le chargement initial de la map
+	_load_initial_map()
+
+func _load_initial_map():
+	"""
+	Charge la map initiale basée sur les données JWT du joueur
+	"""
 	# LECTURE DES DONNÉES JWT
 	# =======================
 	# Récupérer les informations du joueur depuis le token JWT
@@ -111,16 +126,21 @@ func _on_websocket_disconnected():
 	print("[Main] === CONNEXION WEBSOCKET PERDUE ===")
 	# Le HUD gère lui-même l'affichage des états de connexion
 
-## CALLBACK: ERREUR WEBSOCKET
-## ===========================
-func _on_websocket_error(error_message: String):
+## CALLBACK: ERREUR DE CONNEXION WEBSOCKET
+## =========================================
+func _on_websocket_error(error_message):
 	"""
-	Appelé en cas d'erreur de connexion WebSocket.
-	Affiche l'erreur dans l'interface utilisateur.
+	Appelé quand une erreur de connexion WebSocket se produit.
+	Affiche l'erreur mais permet au mécanisme de retry de continuer.
 	"""
-	print("[Main] === ERREUR WEBSOCKET ===")
-	print("[Main] Erreur: ", error_message)
-	# Le HUD gère lui-même l'affichage des états de connexion
+	print("[Main] === ERREUR DE CONNEXION ===")
+	print("[Main] ❌ Erreur WebSocket: ", error_message)
+	
+	# Afficher un message d'information à l'utilisateur
+	# Le retry automatique continue en arrière-plan
+	if websocket_manager and websocket_manager._retry_enabled:
+		print("[Main] 🔄 Tentative de reconnexion automatique en cours...")
+		print("[Main] Le client essaiera de se connecter quand le serveur sera disponible")
 
 ## FALLBACK: CHARGEMENT HORS LIGNE
 ## ================================

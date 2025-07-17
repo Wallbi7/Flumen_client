@@ -1,125 +1,99 @@
-# 📊 Suivi des Progrès - Flumen MMORPG
+# 🌊 **FLUMEN - SUIVI DES PROGRÈS**
 
-## ✅ **SYSTÈME DE COMBAT CLIENT - 100% TERMINÉ**
+## ⚔️ **SYSTÈME DE COMBAT** - Status: 🚀 CORRIGÉ - PRÊT POUR TEST
 
-### **🎯 Dernière Tâche Achevée : Intégration Effets Visuels**
-- **ID** : client-combat-006
-- **Type** : Level 3 - Intermediate Feature
-- **Statut** : ✅ **COMPLÉTÉ** - Système d'effets visuels intégré
-- **Progression** : **100%** - Adaptation client COMPLÈTE
+### 🐛 **Problème: Combat ne se lance pas au clic sur monstre**
 
----
+#### **Historique des corrections:**
 
-## 🏆 **Composants Finalisés**
+1. **✅ CombatGrid.tscn manquant** (RÉSOLU)
+   - Cause: `preload("res://game/combat/CombatGrid.gd").new()` 
+   - Solution: Créé `CombatGrid.tscn` + changé vers `.instantiate()`
 
-### **1. Système Combat Synchronisé** ✅
-- **CombatState.gd** : Modèle aligné serveur Go
-- **CombatManager.gd** : Orchestrateur client-serveur
-- **CombatUI.gd** : Interface Dofus-like (PA/PM/Initiative/Timer)
-- **CombatGrid.gd** : Grille tactique avec validation temps réel
-- **SpellSystem.gd** : Système sorts avec portées et zones
+2. **✅ Erreur syntaxe division** (RÉSOLU)  
+   - Cause: `//` division operator dans CombatUI.gd
+   - Solution: Remplacé par `int(remaining_time / 60)`
 
-### **2. 🎨 Effets Visuels Complets** ✅ **NOUVEAU**
-- **VisualEffectsManager.gd** : Gestionnaire central optimisé
-- **Pools d'objets** : Labels, icônes, particules (performance)
-- **Effets de sorts** : Traînées animées + impacts
-- **Textes de dégâts** : Couleurs + animations (Rouge/Vert/Violet)
-- **Effets temporaires** : Icônes buffs/debuffs avec durée
-- **Intégration automatique** : Déclenchement basé changements d'état
-- **VisualEffectsTestScene.tscn** : Scène test complète (touches 1-6)
+3. **✅ Signaux VisualEffectsManager manquants** (RÉSOLU)
+   - Cause: Signaux supprimés accidentellement  
+   - Solution: Restauré `visual_effect_started` et `animation_completed`
 
-### **3. Architecture Client-Serveur** ✅
-- **Communication WebSocket** : Bidirectionnelle temps réel
-- **Validation locale** : UX responsive < 10ms
-- **Synchronisation serveur** : Autorité absolue serveur
-- **Gestion des erreurs** : Reconnexion + retry automatique
+4. **✅ Conflit Area2D + mauvais nom fonction** (RÉSOLU)
+   - Cause: Double Area2D + `_on_area_input_event` vs `_on_area_2d_input_event`
+   - Solution: Utilisation Area2D du .tscn + nom fonction corrigé
 
----
+5. **✅ Player interceptait tous les clics** (RÉSOLU)
+   - Cause: `_input()` du joueur interceptait avant les monstres
+   - Solution: Changé vers `_unhandled_input()` pour priorité Area2D
 
-## 🔄 **Flux Intégré Fonctionnel**
+6. **✅ Configuration Area2D renforcée** (RÉSOLU)
+   - Ajout: `set_pickable(true)`, `priority=10.0`, vérification CollisionShape2D
+   - Debug: Logging détaillé des événements de clic
 
-### **Combat Complet**
-```
-1. Serveur → CombatState JSON
-2. Client → Parsing automatique + UI update
-3. Joueur → Action grille (clic)
-4. Client → Validation locale + envoi serveur
-5. Serveur → Nouveau CombatState
-6. Client → Sync + 🎨 Effets visuels automatiques
-```
+7. **✅ Conflit de serveurs sur port 9090** (RÉSOLU)
+   - Cause: Deux serveurs tournaient simultanément sur le port 9090
+   - Solution: Arrêt processus + redémarrage serveur propre
 
-### **Effets Visuels Automatiques**
-```
-État ancien ↔ État nouveau comparaison
-├── Changement HP → Texte dégâts/soins animé
-├── Nouvel effet → Icône temporaire colorée  
-└── Action sort → Traînée + impact (si données)
-```
+**🎯 CORRECTIONS FINALES :**
+8. **✅ Serveur ne traitait pas initiate_combat** (RÉSOLU)
+   - Cause: Message `initiate_combat` reçu mais "Unknown message type"
+   - Solution: Ajouté case `MsgInitiateCombat` dans `player_session.go`
+   - Serveur renvoie maintenant `combat_started` avec les données
 
----
+9. **✅ Détection clics améliorée côté client** (RÉSOLU)
+   - Cause: Area2D ne captait que les relâchements, pas les appuis
+   - Solution: Créé `MonsterAreaScript.gd` avec `_gui_input()` 
+   - Double détection : `_gui_input` + backup `input_event`
 
-## 🚀 **Performance Validée**
+#### **🧪 Status Final:**
+- ✅ **Client**: Double détection clics (input_event + _gui_input)
+- ✅ **Serveur**: Traitement complet initiate_combat → combat_started
+- ✅ **Signaux**: Émission + réception fonctionnelle  
+- ✅ **Messages**: Boucle complète client ↔ serveur
+- 🎯 **RÉSULTAT ATTENDU**: Combat se lance au clic !
 
-### **Métriques Atteintes**
-- **Latence validation locale** : < 10ms (Grille + UI)
-- **Synchronisation** : < 50ms client ↔ serveur
-- **Mémoire optimisée** : Pool objets pour 0 allocation runtime
-- **Animation fluide** : 60 FPS même avec 10+ effets simultanés
-- **Stabilité** : 0 crash sur 100+ cycles combat test
+#### **📋 Test de validation:**
+1. **Aller sur map_1_0** (5 monstres disponibles)
+2. **Cliquer gauche** sur monstre → Combat direct
+3. **Cliquer droit** sur monstre → Menu + combat
+4. **Vérifier logs** :
+   ```
+   [MonsterArea] ⚡ CLIC IMMÉDIAT détecté via _gui_input
+   [WebSocketManager] 🥊 COMBAT_STARTED reçu du serveur !
+   [CombatManager] 🚀 LANCEMENT COMBAT !
+   ```
 
-### **Capacité Théorique**  
-- **Combats simultanés** : 30+ (testé localement)
-- **Effets visuels** : 50+ animations parallèles
-- **Grille responsive** : 255 cellules @ 60 FPS
-- **UI temps réel** : Timer 30s + PA/PM + 8 combattants
+#### **💻 Fichiers modifiés:**
+**Client:**
+- `game/monsters/Monster.gd` (setup Area2D amélioré)
+- `game/monsters/MonsterAreaScript.gd` (NOUVEAU - détection _gui_input)
+- `game/players/player.gd` (_input → _unhandled_input)
+- `game/network/WebSocketManager.gd` (debug renforcé)
 
----
-
-## 🎯 **Prochaines Phases Prêtes**
-
-### **Phase Serveur** (Architecture définie)
-1. **✅ Modèles Go** : combat_state.go COMPLET
-2. **✅ TurnManager** : Initiative + PA/PM + Timer
-3. **✅ ActionHandler** : Validation sorts + mouvement
-4. **⚠️ À faire** : WebSocket endpoints combat
-5. **⚠️ À faire** : API REST combat (/combat, /action)
-
-### **Phase Tests Bout-en-Bout**
-1. **Client ↔ Serveur** : Combat complet en conditions réelles
-2. **Multi-joueurs** : 2v2, 4v4 synchronisés
-3. **Performance** : 20+ combats simultanés
-4. **Stress test** : 100+ connexions WebSocket
-
-### **Phase Polish** (Post-serveur)
-1. **Effets visuels avancés** : Particules GPU, shaders
-2. **Audio** : Sons sorts, impacts, ambiance
-3. **UI/UX** : Animations transitions, polish interface
-4. **Outils admin** : Debug combat, replay, métriques
+**Serveur:**
+- `../Flumen_server/internal/game/player_session.go` (gestion initiate_combat)
 
 ---
 
-## 💎 **Réalisations Techniques**
+## 🗺️ **SYSTÈME DE MAPS** - Status: ✅ OPÉRATIONNEL
+- Transitions automatiques entre maps adjacentes
+- Spawn intelligent selon direction d'arrivée
+- Chargement dynamique monstres par map
 
-### **Architecture Solide**
-- **Séparation préoccupations** : State/UI/Grid/Effects/Network
-- **Synchronisation robuste** : Server-authoritative avec UX optimisée
-- **Performance** : Pool patterns + optimisations mémoire
-- **Extensibilité** : Ajout sorts/effets sans refactoring
+## 🎮 **SYSTÈME MULTIJOUEUR** - Status: ✅ OPÉRATIONNEL  
+- Communication WebSocket temps réel
+- Synchronisation mouvements joueurs
+- Gestion connexions/déconnexions
 
-### **Qualité Code**
-- **Documentation complète** : Chaque classe/méthode documentée
-- **Tests intégrés** : VisualEffectsTest + validation continue
-- **Patterns modernes** : Signals Godot + state management
-- **Debug tools** : Logs structurés + validation temps réel
+## 🔐 **SYSTÈME AUTHENTIFICATION** - Status: ✅ OPÉRATIONNEL
+- JWT avec données personnage intégrées
+- Sessions persistantes optionnelles
+- Validation côté client + serveur
 
 ---
 
-## ✨ **Conclusion : CLIENT COMBAT PRÊT PRODUCTION**
-
-Le système de combat client Godot est maintenant **100% finalisé** et prêt pour l'intégration serveur. Tous les composants sont synchronisés, optimisés et testés. 
-
-**L'adaptation Dofus-like est terminée avec succès ! 🎮⚔️✨**
-
-**Statut** : ✅ PRÊT POUR PHASE SERVEUR
-**Confiance** : 🚀 HAUTE (Architecture éprouvée)
-**Performance** : ⚡ OPTIMISÉE (Production-ready)
+## 📊 **PROCHAINES FONCTIONNALITÉS**
+1. **Système d'inventaire** (Level 2)
+2. **Système de sorts** (Level 3) 
+3. **Commerce entre joueurs** (Level 3)
+4. **Guildes** (Level 4)
