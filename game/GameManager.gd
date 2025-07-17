@@ -1151,49 +1151,62 @@ func test_combat_system():
 	print("[GameManager] État du jeu: IN_COMBAT")
 	
 	# Créer des données de combat compatibles serveur pour test
-	var test_combat_data = {
-		"id": "test_combat_001",
-		"status": "STARTING",
-		"current_turn_index": 0,
-		"turn_timer": 30,
-		"current_map_id": current_map_id,
-		"combatants": [
-			{
-				"id": "test_ally",
-				"name": "Testeur", 
-				"team": 0,
-				"position": {"x": 7, "y": 8},
-				"stats": {
-					"health": 100,
-					"max_health": 100,
-					"action_points": 6,
-					"max_action_points": 6,
-					"movement_points": 3,
-					"max_movement_points": 3
-				},
-				"initiative": 15,
-				"active_effects": [],
-				"is_alive": true
-			},
-			{
-				"id": "test_enemy",
-				"name": "Monstre Test",
-				"team": 1,
-				"position": {"x": 10, "y": 8},
-				"stats": {
-					"health": 50,
-					"max_health": 50,
-					"action_points": 4,
-					"max_action_points": 4,
-					"movement_points": 2,
-					"max_movement_points": 2
-				},
-				"initiative": 10,
-				"active_effects": [],
-				"is_alive": true
-			}
-		]
-	}
+        var now = Time.get_time_dict_from_system()
+        var start_time = now.hour * 3600 + now.minute * 60 + now.second
+
+        var test_combat_data = {
+                "id": "test_combat_001",
+                "status": "PLACEMENT",
+                "current_turn_index": 0,
+                "turn_start_time": start_time,
+                "turn_time_limit": 30.0,
+                "current_map_id": current_map_id,
+                "combatants": [
+                        {
+                                "character_id": "test_ally",
+                                "name": "Testeur",
+                                "level": 1,
+                                "is_player": true,
+                                "team_id": 0,
+                                "base_health": 100,
+                                "base_action_points": 6,
+                                "base_movement_points": 3,
+                                "base_initiative": 15,
+                                "current_health": 100,
+                                "remaining_action_points": 6,
+                                "remaining_movement_points": 3,
+                                "pos_x": 7,
+                                "pos_y": 8,
+                                "initiative": 15,
+                                "is_dead": false,
+                                "has_played": false,
+                                "active_effects": []
+                        },
+                        {
+                                "character_id": "test_enemy",
+                                "name": "Monstre Test",
+                                "level": 1,
+                                "is_player": false,
+                                "team_id": 1,
+                                "base_health": 50,
+                                "base_action_points": 4,
+                                "base_movement_points": 2,
+                                "base_initiative": 10,
+                                "current_health": 50,
+                                "remaining_action_points": 4,
+                                "remaining_movement_points": 2,
+                                "pos_x": 10,
+                                "pos_y": 8,
+                                "initiative": 10,
+                                "is_dead": false,
+                                "has_played": false,
+                                "active_effects": []
+                        }
+                ],
+                "turn_order": ["test_ally", "test_enemy"],
+                "ally_team": ["test_ally"],
+                "enemy_team": ["test_enemy"]
+        }
 	
 	combat_manager.start_combat_from_server(test_combat_data)
 	
