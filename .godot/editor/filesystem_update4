@@ -7,3 +7,7 @@ res://game/ui/Chat.tscn
 res://game/GameManager.gd
 res://game/main.gd
 res://game/network/WebSocketManager.gd
+res://game/combat/CombatManager.gd
+res://game/players/player.gd
+res://game/monsters/Monster.gd
+res://game/ui/MonsterTooltip.gd

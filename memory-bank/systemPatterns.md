@@ -113,3 +113,26 @@ Ce document décrit l'architecture du système de combat, conçu pour être modu
 -   **Source de Vérité :** Le serveur est le seul et unique maître de l'état du combat. Les calculs (dégâts, PM restants, etc.) sont faits sur le serveur.
 -   **Communication :** Le client envoie des "intentions" d'action. Le serveur les valide, les applique, et renvoie le nouvel état de vérité (`CombatState`). Le client ne fait que refléter cet état.
 -   **État :** Le `CombatState` est conçu pour être la seule information nécessaire au client pour afficher le combat.
+
+## Architecture des Systèmes
+
+### Système de Combat (Corrigé le 19/01/2025)
+
+#### Architecture Serveur-Client
+- **Serveur**: Les messages `initiate_combat` doivent être transmis au hub via le canal Broadcast, PAS traités localement dans player_session
+- **Hub**: Crée un CombatState complet via CombatManager et envoie l'état entier au client
+- **Client**: CombatManager utilise WebSocketManager (PAS NetworkManager) avec signaux connectés
+
+#### Flux de Combat
+1. Clic sur monstre → `initiate_combat` envoyé au serveur
+2. PlayerSession → Forward au Hub via Broadcast
+3. Hub → Crée CombatState complet avec positions, stats, ordre de tour
+4. Hub → Envoie `combat_started` avec état complet
+5. Client → Désactive mouvement joueur, affiche grille avec combattants
+6. Combat → Actions échangées via `combat_update`
+7. Fin → `combat_ended` réactive mouvement
+
+#### Points Clés
+- **Mouvement**: Désactivé via `player.movement_enabled = false` et vérification `GameState.IN_COMBAT`
+- **Signaux WebSocket**: `combat_update`, `combat_action_response`, `combat_ended` doivent être définis
+- **CombatManager**: Cherche WebSocketManager dans la scène principale ou via GameManager

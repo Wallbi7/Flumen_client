@@ -97,3 +97,11 @@
 2. **Système de sorts** (Level 3) 
 3. **Commerce entre joueurs** (Level 3)
 4. **Guildes** (Level 4)
+
+### 19 Janvier 2025
+- **Correction majeure du système de combat** [[memory:3601332]]
+  - ✅ Corrigé le routage des messages `initiate_combat` vers le hub au lieu du traitement local
+  - ✅ Implémenté la connexion WebSocketManager-CombatManager côté client  
+  - ✅ Ajouté le verrouillage des mouvements du joueur pendant le combat
+  - ✅ Créé les signaux et handlers WebSocket manquants (combat_update, combat_ended)
+  - 📄 Documentation complète dans `COMBAT_SYSTEM_FIX.md`

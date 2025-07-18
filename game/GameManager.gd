@@ -247,6 +247,11 @@ func _on_combat_started_from_server(combat_data: Dictionary):
 		print("[GameManager] ⚠️ Un combat est déjà en cours, ignoré.")
 		return
 
+	# Désactiver le mouvement du joueur
+	if current_player:
+		current_player.set_movement_enabled(false)
+		print("[GameManager] 🚫 Mouvement du joueur désactivé pour le combat")
+
 	# Utiliser la nouvelle API qui traite directement les données serveur
 	combat_manager.start_combat_from_server(combat_data)
 	print("[GameManager] ✅ Combat démarré avec les données serveur")
@@ -862,10 +867,14 @@ func send_websocket_message(type: String, data: Dictionary):
 			"data": data,
 			"timestamp": Time.get_unix_time_from_system()
 		}
-		manager.send_message(JSON.stringify(message))
+		manager.send_text(JSON.stringify(message))
 		print("[GameManager] 📤 Message WebSocket envoyé: ", type, " avec données: ", data)
 	else:
 		print("[GameManager] ❌ Pas de WebSocket manager disponible")
+
+## Retourne la référence au WebSocketManager
+func get_websocket_manager():
+	return websocket_manager
 
 ## ===================================
 ## GESTION DES MONSTRES
@@ -899,6 +908,7 @@ func _on_monsters_loaded(_result: int, response_code: int, _headers: PackedStrin
 	"""Callback quand les monstres sont chargés"""
 	print("[GameManager] === RÉPONSE MONSTRES ===")
 	print("[GameManager] Code: ", response_code)
+	print("[GameManager] Body: ", body.get_string_from_utf8())  # DEBUG: Afficher la réponse brute
 	
 	if response_code == 200:
 		var json = JSON.new()
@@ -906,12 +916,15 @@ func _on_monsters_loaded(_result: int, response_code: int, _headers: PackedStrin
 		
 		if parse_result == OK:
 			var data = json.data
+			print("[GameManager] Data parsed: ", data)  # DEBUG: Afficher les données parsées
+			
 			if data.has("monsters") and data["monsters"] != null:
 				var monsters_data = data["monsters"]
 				print("[GameManager] Monstres trouvés: ", len(monsters_data))
 				
 				# Créer les monstres
 				for monster_data in monsters_data:
+					print("[GameManager] Processing monster: ", monster_data)  # DEBUG: Afficher chaque monstre
 					_create_monster(monster_data)
 			else:
 				print("[GameManager] Aucun monstre sur cette map")
@@ -922,30 +935,30 @@ func _on_monsters_loaded(_result: int, response_code: int, _headers: PackedStrin
 
 func _create_monster(monster_data: Dictionary):
 	"""Crée un monstre à partir des données serveur"""
-	var monster_id = monster_data.get("id", "")
-	if monster_id == "":
-		print("[GameManager] ❌ ID monstre manquant")
+	var monster_name = monster_data.get("template_id", "")
+	if monster_name == "":
+		print("[GameManager] ❌ Template ID monstre manquant")
 		return
 	
 	# Vérifier si le monstre existe déjà
-	if monsters.has(monster_id):
-		print("[GameManager] Monstre déjà existant: ", monster_id)
+	if monsters.has(monster_name):
+		print("[GameManager] Monstre déjà existant: ", monster_name)
 		return
 	
 	# Créer l'instance du monstre
 	var monster_instance = monster_scene.instantiate()
-	monster_instance.initialize_monster(monster_data)
+	monster_instance.initialize_from_data(monster_data)
 	
 	# Ajouter à la map
 	if current_map:
 		current_map.add_child(monster_instance)
-		monsters[monster_id] = monster_instance
+		monsters[monster_name] = monster_instance
 		monsters_on_map.append(monster_instance)
 		
 		# Connecter tous les signaux d'interaction
 		connect_monster_signals(monster_instance)
 		
-		print("[GameManager] ✅ Monstre créé: ", monster_data.get("name", "Inconnu"))
+		print("[GameManager] ✅ Monstre créé: ", monster_data.get("template_id", "Inconnu"))
 	else:
 		print("[GameManager] ❌ Pas de map pour ajouter le monstre")
 		monster_instance.queue_free()
@@ -1019,9 +1032,10 @@ func _on_monster_died(monster: Monster):
 	"""Callback quand un monstre meurt"""
 	print("[GameManager] Monstre mort: ", monster.monster_name)
 	
-	# Supprimer de la liste
-	if monsters.has(monster.monster_id):
-		monsters.erase(monster.monster_id)
+	# Supprimer de la liste en utilisant le nom comme clé (puisque monster_id n'existe plus)
+	var monster_key = monster.monster_name
+	if monsters.has(monster_key):
+		monsters.erase(monster_key)
 	
 	# Ici, on pourrait :
 	# - Donner de l'XP au joueur
@@ -1077,12 +1091,13 @@ func start_combat_with_monster(monster: Monster):
 		print("[GameManager] ❌ Monstre invalide, impossible de lancer le combat.")
 		return
 		
-	var monster_id = monster.monster_id
+	# Utiliser le nom du monstre comme identifiant puisque monster_id n'existe plus
+	var monster_id = monster.monster_name
 	if monster_id == "":
-		print("[GameManager] ❌ ID de monstre vide, impossible de lancer le combat.")
+		print("[GameManager] ❌ Nom de monstre vide, impossible de lancer le combat.")
 		return
 
-	print("[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre ID: ", monster_id)
+	print("[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: ", monster_id)
 	
 	# Envoyer la requête au serveur via le WebSocketManager
 	# Le serveur sera responsable de créer le combat et de notifier les clients.
@@ -1119,12 +1134,21 @@ func _on_local_combat_ended(winning_team):
 	"""Appelé quand un combat local se termine"""
 	print("[GameManager] 🏁 Combat terminé - Gagnant: ", winning_team)
 	
-	# Réactiver les contrôles de déplacement normal
-	if current_player and current_player.has_method("set_movement_enabled"):
+	# Réactiver le mouvement du joueur
+	if current_player:
 		current_player.set_movement_enabled(true)
+		print("[GameManager] ✅ Mouvement du joueur réactivé")
 	
+	# Revenir à l'état de jeu normal
 	current_state = GameState.IN_GAME
-	print("[GameManager] État du jeu: IN_GAME")
+	
+	# Afficher un message de résultat
+	if winning_team == CombatTurnManager.Team.ALLY:
+		print("[GameManager] 🎉 Victoire du joueur !")
+		# TODO: Gérer les récompenses, XP, etc.
+	else:
+		print("[GameManager] 💀 Défaite du joueur...")
+		# TODO: Gérer la mort/respawn
 
 ## COMBAT MOVEMENT - Handled by CombatManager via synchronized combat state
 ## Movement actions are now processed through CombatManager.process_action()
@@ -1151,62 +1175,62 @@ func test_combat_system():
 	print("[GameManager] État du jeu: IN_COMBAT")
 	
 	# Créer des données de combat compatibles serveur pour test
-        var now = Time.get_time_dict_from_system()
-        var start_time = now.hour * 3600 + now.minute * 60 + now.second
+	var now = Time.get_time_dict_from_system()
+	var start_time = now.hour * 3600 + now.minute * 60 + now.second
 
-        var test_combat_data = {
-                "id": "test_combat_001",
-                "status": "PLACEMENT",
-                "current_turn_index": 0,
-                "turn_start_time": start_time,
-                "turn_time_limit": 30.0,
-                "current_map_id": current_map_id,
-                "combatants": [
-                        {
-                                "character_id": "test_ally",
-                                "name": "Testeur",
-                                "level": 1,
-                                "is_player": true,
-                                "team_id": 0,
-                                "base_health": 100,
-                                "base_action_points": 6,
-                                "base_movement_points": 3,
-                                "base_initiative": 15,
-                                "current_health": 100,
-                                "remaining_action_points": 6,
-                                "remaining_movement_points": 3,
-                                "pos_x": 7,
-                                "pos_y": 8,
-                                "initiative": 15,
-                                "is_dead": false,
-                                "has_played": false,
-                                "active_effects": []
-                        },
-                        {
-                                "character_id": "test_enemy",
-                                "name": "Monstre Test",
-                                "level": 1,
-                                "is_player": false,
-                                "team_id": 1,
-                                "base_health": 50,
-                                "base_action_points": 4,
-                                "base_movement_points": 2,
-                                "base_initiative": 10,
-                                "current_health": 50,
-                                "remaining_action_points": 4,
-                                "remaining_movement_points": 2,
-                                "pos_x": 10,
-                                "pos_y": 8,
-                                "initiative": 10,
-                                "is_dead": false,
-                                "has_played": false,
-                                "active_effects": []
-                        }
-                ],
-                "turn_order": ["test_ally", "test_enemy"],
-                "ally_team": ["test_ally"],
-                "enemy_team": ["test_enemy"]
-        }
+	var test_combat_data = {
+			"id": "test_combat_001",
+			"status": "PLACEMENT",
+			"current_turn_index": 0,
+			"turn_start_time": start_time,
+			"turn_time_limit": 30.0,
+			"current_map_id": current_map_id,
+			"combatants": [
+					{
+							"character_id": "test_ally",
+							"name": "Testeur",
+							"level": 1,
+							"is_player": true,
+							"team_id": 0,
+							"base_health": 100,
+							"base_action_points": 6,
+							"base_movement_points": 3,
+							"base_initiative": 15,
+							"current_health": 100,
+							"remaining_action_points": 6,
+							"remaining_movement_points": 3,
+							"pos_x": 7,
+							"pos_y": 8,
+							"initiative": 15,
+							"is_dead": false,
+							"has_played": false,
+							"active_effects": []
+					},
+					{
+							"character_id": "test_enemy",
+							"name": "Monstre Test",
+							"level": 1,
+							"is_player": false,
+							"team_id": 1,
+							"base_health": 50,
+							"base_action_points": 4,
+							"base_movement_points": 2,
+							"base_initiative": 10,
+							"current_health": 50,
+							"remaining_action_points": 4,
+							"remaining_movement_points": 2,
+							"pos_x": 10,
+							"pos_y": 8,
+							"initiative": 10,
+							"is_dead": false,
+							"has_played": false,
+							"active_effects": []
+					}
+			],
+			"turn_order": ["test_ally", "test_enemy"],
+			"ally_team": ["test_ally"],
+			"enemy_team": ["test_enemy"]
+	}
 	
 	combat_manager.start_combat_from_server(test_combat_data)
 	

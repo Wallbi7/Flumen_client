@@ -1,36 +1,15 @@
 extends CharacterBody2D
 class_name Monster
 
-## Classe Monster pour l'affichage des monstres côté client
-
-# ================================
-# SIGNAUX POUR INTERACTION COMBAT - RECOMPILATION FORCÉE
-# ================================
+## SIGNAUX ÉMIS PAR LE MONSTRE
+## ============================
 signal monster_clicked(monster: Monster)
-signal monster_right_clicked(monster: Monster) 
-signal monster_hovered(monster: Monster, is_hovering: bool)
+signal monster_right_clicked(monster: Monster)
+signal monster_hovered(monster: Monster, is_hovered: bool)
 signal monster_died(monster: Monster)
 
-@export var monster_id: String
-@export var monster_type: String
-@export var monster_name: String
-@export var level: int = 1
-@export var is_alive: bool = true
-
-# Stats du monstre
-var health: int
-var max_health: int
-var strength: int
-var intelligence: int
-var agility: int
-var vitality: int
-
-# Composants visuels
-@onready var sprite: ColorRect = $ColorRect
-@onready var health_bar: ProgressBar = $HealthBar
-@onready var name_label: Label = $NameLabel
-@onready var level_label: Label = $LevelLabel
-
+## CONSTANTES
+## ==========
 # Couleurs selon le comportement
 const BEHAVIOR_COLORS = {
 	"passive": Color.GREEN,
@@ -38,33 +17,45 @@ const BEHAVIOR_COLORS = {
 	"aggressive": Color.RED
 }
 
+## PROPRIÉTÉS EXPORTÉES
+## ====================
+@export var monster_data: Dictionary = {}
+
+## RÉFÉRENCES AUX NŒUDS ENFANTS
+## =============================
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var health_bar: ProgressBar = $HealthBar
+@onready var interaction_area: Area2D = $Area2D
+
+## VARIABLES D'ÉTAT
+## ================
+var monster_type: String = ""
+var monster_name: String = "Monstre"
+var level: int = 1
+var is_alive: bool = true
 var behavior: String = "neutral"
-
-# Variables pour les interactions
 var is_mouse_over: bool = false
-var interaction_area: Area2D
 
-func setup_visual_components():
-	# Configuration du nom
-	if name_label:
-		name_label.text = monster_name
-		name_label.modulate = BEHAVIOR_COLORS.get(behavior, Color.WHITE)
-	
-	# Configuration du niveau
-	if level_label:
-		level_label.text = "Niv. " + str(level)
-	
-	# Configuration de la barre de vie
-	if health_bar:
-		health_bar.max_value = max_health
-		health_bar.value = health
-		health_bar.visible = health < max_health  # Masquer si pleine vie
+## STATS DE BASE
+## =============
+var health: int = 100
+var max_health: int = 100
+var strength: int = 10
+var intelligence: int = 10
+var agility: int = 10
+var vitality: int = 10
 
-func initialize_monster(monster_data: Dictionary):
-	"""Initialise le monstre avec les données du serveur"""
-	monster_id = monster_data.get("id", "")
+## INITIALISATION
+## ==============
+func _ready():
+	print("[Monster] Initialisation du monstre: ", monster_name)
+	setup_visual_components()
+	setup_interaction_area()
+
+func initialize_from_data(monster_data: Dictionary):
+	"""Initialise le monstre avec les données fournies"""
 	monster_type = monster_data.get("template_id", "")
-	monster_name = monster_data.get("name", "Monstre")
+	monster_name = monster_data.get("template_id", "Monstre")  # Utiliser template_id comme nom
 	level = monster_data.get("level", 1)
 	is_alive = monster_data.get("is_alive", true)
 	behavior = monster_data.get("behavior", "neutral")
@@ -146,10 +137,12 @@ func die():
 	
 	print("[Monster] ", monster_name, " est mort !")
 
-func _ready():
-	print("[Monster] Initialisation du monstre: ", monster_name)
-	setup_visual_components()
-	setup_interaction_area()
+func setup_visual_components():
+	"""Configure les composants visuels du monstre"""
+	if health_bar:
+		health_bar.max_value = max_health
+		health_bar.value = health
+		health_bar.visible = false  # Cachée par défaut
 
 func setup_interaction_area():
 	"""Configure la zone d'interaction du monstre"""
@@ -233,14 +226,14 @@ func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 			# Marquer l'événement comme géré pour éviter la propagation
 			get_viewport().set_input_as_handled()
 			
-			if event.button_index == MOUSE_BUTTON_LEFT:
-				# Clic gauche = déplacement + attaque
-				print("[Monster] 🔥 ÉMISSION SIGNAL monster_clicked pour: ", monster_name)
-				monster_clicked.emit(self)
-			elif event.button_index == MOUSE_BUTTON_RIGHT:
-				# Clic droit = menu contextuel (future feature)
-				print("[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: ", monster_name)
-				monster_right_clicked.emit(self)
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			# Clic gauche = déplacement + attaque
+			print("[Monster] 🔥 ÉMISSION SIGNAL monster_clicked pour: ", monster_name)
+			monster_clicked.emit(self)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			# Clic droit = menu contextuel (future feature)
+			print("[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: ", monster_name)
+			monster_right_clicked.emit(self)
 		else:
 			print("[Monster] 📤 Relâchement bouton ", event.button_index, " sur ", monster_name)
 	elif event is InputEventMouseMotion:

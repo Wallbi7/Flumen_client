@@ -22,8 +22,8 @@ var visual_effects_manager: VisualEffectsManager = null
 ## Référence au GameManager principal
 var game_manager: Node = null
 
-## Référence au NetworkManager pour communication serveur
-var network_manager: Node = null
+## Référence au WebSocketManager pour communication serveur
+var websocket_manager: Node = null
 
 # ================================
 # VARIABLES DE COMBAT SYNCHRONISÉES
@@ -68,26 +68,35 @@ signal action_rejected(reason: String)
 # ================================
 
 func _ready():
-	print("[CombatManager] === GESTIONNAIRE COMBAT DOFUS-LIKE INITIALISÉ ===")
+	print("\n[CombatManager] === INITIALISATION ===")
 	
-	# Obtenir les références nécessaires
+	# Chercher GameManager
 	game_manager = get_node_or_null("/root/GameManager")
-	network_manager = get_node_or_null("/root/NetworkManager")
 	
-	# Initialiser le système d'effets visuels
+	# Chercher WebSocketManager dans la scène principale
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		websocket_manager = main_scene.get_node_or_null("WebSocketManager")
+		if not websocket_manager:
+			# Fallback: chercher dans GameManager
+			if game_manager and game_manager.has_method("get_websocket_manager"):
+				websocket_manager = game_manager.get_websocket_manager()
+	
+	# Initialiser les effets visuels
 	_initialize_visual_effects()
 	
+	# Logger l'état
 	if game_manager:
 		print("[CombatManager] ✅ GameManager trouvé")
 	else:
 		print("[CombatManager] ⚠️ GameManager non trouvé")
 	
-	if network_manager:
-		print("[CombatManager] ✅ NetworkManager trouvé")
+	if websocket_manager:
+		print("[CombatManager] ✅ WebSocketManager trouvé")
 		# Connecter aux signaux réseau pour recevoir les mises à jour de combat
 		_connect_network_signals()
 	else:
-		print("[CombatManager] ⚠️ NetworkManager non trouvé")
+		print("[CombatManager] ⚠️ WebSocketManager non trouvé")
 
 ## Initialise le système d'effets visuels
 func _initialize_visual_effects():
@@ -111,10 +120,22 @@ func _on_visual_effect_started(position: Vector2, type: String):
 
 ## Connecte les signaux réseau pour la synchronisation
 func _connect_network_signals():
-	# TODO: Connecter aux signaux WebSocket du NetworkManager
-	# network_manager.combat_state_received.connect(_on_combat_state_received)
-	# network_manager.combat_action_response.connect(_on_combat_action_response)
-	pass
+	if not websocket_manager:
+		print("[CombatManager] ❌ Impossible de connecter les signaux réseau - WebSocketManager manquant")
+		return
+		
+	# Connecter aux signaux WebSocket pour les mises à jour de combat
+	if websocket_manager.has_signal("combat_update"):
+		websocket_manager.connect("combat_update", _on_combat_update_from_server)
+		print("[CombatManager] ✅ Signal combat_update connecté")
+		
+	if websocket_manager.has_signal("combat_action_response"):
+		websocket_manager.connect("combat_action_response", _on_combat_action_response)
+		print("[CombatManager] ✅ Signal combat_action_response connecté")
+		
+	if websocket_manager.has_signal("combat_ended"):
+		websocket_manager.connect("combat_ended", _on_combat_ended_from_server)
+		print("[CombatManager] ✅ Signal combat_ended connecté")
 
 ## Initialise tous les systèmes de combat
 func initialize_combat_systems():
@@ -228,28 +249,38 @@ func start_combat_from_server(combat_data: Dictionary):
 ## Met à jour l'état de combat depuis le serveur
 func update_combat_state(new_combat_data: Dictionary):
 	if not is_combat_active:
-		print("[CombatManager] ⚠️ Mise à jour reçue mais aucun combat actif")
+		print("[CombatManager] ⚠️ Pas de combat actif - Mise à jour ignorée")
 		return
 	
-	print("[CombatManager] 🔄 Mise à jour état de combat...")
-	
-	# Sauvegarder l'ancien état pour comparaison
-	var old_combat_state = current_combat_state
-	
-	# Mettre à jour l'état
+	# Mettre à jour l'état depuis les données serveur
 	current_combat_state = CombatState.from_server_data(new_combat_data)
-	
-	# Détecter et déclencher les effets visuels basés sur les changements
-	_detect_and_trigger_visual_effects(old_combat_state, current_combat_state)
 	
 	# Mettre à jour tous les systèmes
 	_update_all_systems()
 	
-	# Vérifier si le combat est terminé
-	if current_combat_state.is_combat_finished():
-		_end_combat()
-	
-	combat_state_updated.emit(current_combat_state)
+	print("[CombatManager] 🔄 État de combat mis à jour depuis serveur")
+
+## Callback pour les mises à jour de combat du serveur
+func _on_combat_update_from_server(update_data: Dictionary):
+	print("[CombatManager] 📡 Mise à jour de combat reçue du serveur")
+	update_combat_state(update_data)
+
+## Callback pour les réponses d'action de combat
+func _on_combat_action_response(response_data: Dictionary):
+	print("[CombatManager] 📡 Réponse d'action de combat reçue: ", response_data)
+	# TODO: Traiter la réponse selon le type d'action
+
+## Callback pour la fin de combat
+func _on_combat_ended_from_server(end_data: Dictionary):
+	print("[CombatManager] 📡 Fin de combat reçue du serveur")
+	var result_data = {}
+	if end_data.has("winner"):
+		result_data["winner"] = end_data.winner
+		result_data["victory"] = end_data.winner == "player"
+	else:
+		result_data["winner"] = "unknown"
+		result_data["victory"] = false
+	end_combat(result_data)
 
 ## Met à jour tous les systèmes avec l'état actuel
 func _update_all_systems():
@@ -386,10 +417,10 @@ func _send_action_to_server(action_data: Dictionary):
 	pending_actions.append(action_data)
 	
 	# TODO: Envoyer via NetworkManager
-	if network_manager and network_manager.has_method("send_combat_action"):
-		network_manager.send_combat_action(action_data)
+	if websocket_manager and websocket_manager.has_method("send_combat_action"):
+		websocket_manager.send_combat_action(action_data)
 	else:
-		print("[CombatManager] ⚠️ NetworkManager non disponible - Action mise en attente")
+		print("[CombatManager] ⚠️ WebSocketManager non disponible - Action mise en attente")
 	
 	action_validated.emit(action_data)
 

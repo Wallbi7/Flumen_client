@@ -21,11 +21,23 @@ signal map_transition_triggered(target_map_id: String, entry_point: Vector2)
 ## ==============================
 var target_position: Vector2  # Position cible vers laquelle le joueur se déplace
 var is_moving: bool = false   # Indique si le joueur est actuellement en mouvement
+var movement_enabled: bool = true  # Indique si le joueur peut se déplacer
+
+## RÉFÉRENCE AU GAMEMANAGER
+## ========================
+var game_manager: Node = null
 
 ## INITIALISATION DU JOUEUR
 ## =========================
 func _ready():
 	print("[Player] === INITIALISATION DU JOUEUR ===")
+	
+	# Obtenir la référence au GameManager
+	game_manager = get_node_or_null("/root/GameManager")
+	if game_manager:
+		print("[Player] ✅ GameManager trouvé")
+	else:
+		print("[Player] ⚠️ GameManager non trouvé")
 	
 	# Ajouter le joueur au groupe "Player" pour identification facile
 	add_to_group("Player")
@@ -45,6 +57,17 @@ func _unhandled_input(event):
 	# Certaines classes d'InputEvent (p. ex. MouseMotion) ne possèdent pas la méthode is_handled().
 	if event.has_method("is_handled") and event.is_handled():
 		return
+		
+	# Vérifier si le jeu est en mode combat
+	if game_manager and game_manager.current_state == game_manager.GameState.IN_COMBAT:
+		print("[Player] ⚠️ Mouvement bloqué - Mode combat actif")
+		return
+		
+	# Vérifier si le mouvement est activé
+	if not movement_enabled:
+		print("[Player] ⚠️ Mouvement désactivé")
+		return
+		
 	if event is InputEventMouseButton and event.pressed:
 		var mouse_pos = get_global_mouse_position()
 		
@@ -137,3 +160,20 @@ func _on_body_entered(body):
 			print("[Player] ⚠️ Zone de transition sans map cible définie")
 	else:
 		print("[Player] Collision avec un objet non-transition: ", body.get_class() if body else "inconnu")
+
+## ACTIVE/DÉSACTIVE LE MOUVEMENT
+## =============================
+func set_movement_enabled(enabled: bool):
+	"""
+	Active ou désactive la capacité de mouvement du joueur.
+	Utilisé principalement pour bloquer le mouvement pendant les combats.
+	"""
+	movement_enabled = enabled
+	if not enabled:
+		# Arrêter tout mouvement en cours
+		is_moving = false
+		target_position = global_position
+		velocity = Vector2.ZERO
+		print("[Player] Mouvement désactivé - Arrêt du personnage")
+	else:
+		print("[Player] Mouvement réactivé")
