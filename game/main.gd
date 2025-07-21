@@ -20,6 +20,13 @@ var fallback_executed: bool = false  # Empêche l'exécution multiple du fallbac
 func _ready():
 	print("[Main] === INITIALISATION SCÈNE PRINCIPALE ===")
 	
+	# AJOUT DU SCRIPT DE DEBUG COMBAT
+	# ================================
+	var debug_combat = preload("res://debug_combat_click.gd").new()
+	debug_combat.name = "CombatClickDebug"
+	add_child(debug_combat)
+	print("[Main] ✅ Script de debug combat ajouté")
+	
 	# CONFIGURATION DU REDIMENSIONNEMENT
 	# ===================================
 	# Connecter le signal de redimensionnement de fenêtre pour ajuster la caméra

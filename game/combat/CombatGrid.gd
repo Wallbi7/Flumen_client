@@ -7,18 +7,18 @@ class_name CombatGrid
 ## Gère les zones de placement, validation PA/PM, et interaction tactique.
 
 # ================================
-# CONSTANTES DE GRILLE (Compatibles Dofus)
+# CONSTANTES DE GRILLE (Style Dofus Authentique)
 # ================================
-const CELL_WIDTH: int = 86
-const CELL_HEIGHT: int = 43
+const CELL_WIDTH: int = 64  # Taille plus grande pour meilleure visibilité
+const CELL_HEIGHT: int = 32  # Ratio 2:1 pour losanges isométriques parfaits
 
 # ================================
 # VARIABLES DE GRILLE
 # ================================
 
-## Dimensions de la grille (synchronisées avec serveur)
-var grid_width: int = 15
-var grid_height: int = 17
+## Dimensions de la grille (Style Dofus authentique)
+var grid_width: int = 17  # Largeur standard Dofus
+var grid_height: int = 15  # Hauteur standard Dofus
 
 ## État de combat synchronisé avec serveur
 var current_combat_state: CombatState = null
@@ -103,16 +103,22 @@ func _ready():
 	# Initialiser la grille par défaut
 	initialize_grid(grid_width, grid_height)
 
-## Centre la grille sur l'écran
+## Centre la grille style Dofus sur l'écran
 func _center_grid_on_screen():
 	var screen_size = get_viewport().get_visible_rect().size
+	
+	# Dofus utilise une grille fixe de 17x15, toujours centrée
+	# Calculer les dimensions de la grille isométrique
 	var grid_screen_width = grid_width * CELL_WIDTH
 	var grid_screen_height = grid_height * CELL_HEIGHT
 	
+	# Centrer parfaitement au milieu de l'écran (style Dofus)
 	position = Vector2(
 		(screen_size.x - grid_screen_width) / 2.0,
-		(screen_size.y - grid_screen_height) / 2.0
+		(screen_size.y - grid_screen_height) / 2.0 + 50  # Léger décalage vers le bas
 	)
+	
+	print("[CombatGrid] ✅ Grille Dofus %dx%d centrée - Position: %s" % [grid_width, grid_height, position])
 
 # ================================
 # SYNCHRONISATION AVEC SERVEUR
@@ -175,22 +181,112 @@ func _update_combatant_positions():
 	# Regénérer la grille visuelle
 	_generate_visual_grid()
 
-## Met à jour les zones de placement selon la phase de combat
+## Met à jour les zones de placement style Dofus (bleu/rouge)
 func _update_placement_zones():
 	if not current_combat_state:
+		# Créer les zones par défaut style Dofus si pas d'état combat
+		_create_default_dofus_placement_zones()
 		return
 	
 	# Afficher les zones de placement uniquement en phase PLACEMENT
 	if current_combat_state.status == CombatState.CombatStatus.PLACEMENT:
-		# Zones alliées
+		# Zones alliées (bleues, côté gauche)
 		for cell_pos in current_combat_state.ally_placement_cells:
 			if is_valid_grid_position(cell_pos):
 				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
 		
-		# Zones ennemies
+		# Zones ennemies (rouges, côté droit)
 		for cell_pos in current_combat_state.enemy_placement_cells:
 			if is_valid_grid_position(cell_pos):
 				set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
+
+## Crée les zones de placement par défaut style Dofus
+func _create_default_dofus_placement_zones():
+	# Zone bleue (alliés) - côté gauche de la grille
+	for y in range(grid_height):
+		for x in range(0, min(4, grid_width)):  # 4 colonnes à gauche
+			var cell_pos = Vector2i(x, y)
+			if is_valid_grid_position(cell_pos):
+				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
+	
+	# Zone rouge (ennemis) - côté droit de la grille
+	for y in range(grid_height):
+		for x in range(max(grid_width - 4, 0), grid_width):  # 4 colonnes à droite
+			var cell_pos = Vector2i(x, y)
+			if is_valid_grid_position(cell_pos):
+				set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
+	
+	# Régénérer les visuels pour afficher les zones
+	_generate_visual_grid()
+
+## Nettoie les zones de placement
+func clear_placement_zones():
+	"""Supprime les zones de placement bleues et rouges"""
+	for y in range(grid_height):
+		for x in range(grid_width):
+			var cell_pos = Vector2i(x, y)
+			var cell_data = get_cell_data(cell_pos)
+			if not cell_data.is_empty():
+				if cell_data["state"] in [CellState.PLACEMENT_ALLY, CellState.PLACEMENT_ENEMY]:
+					set_cell_state(cell_pos, CellState.NORMAL)
+	
+	_generate_visual_grid()
+	print("[CombatGrid] ✅ Zones de placement nettoyées")
+
+## Gère le clic sur une cellule de placement
+func handle_placement_click(grid_pos: Vector2i):
+	"""Gère le clic sur une cellule bleue pour placer le joueur"""
+	if not is_valid_grid_position(grid_pos):
+		return false
+	
+	var cell_data = get_cell_data(grid_pos)
+	if cell_data.is_empty():
+		return false
+	
+	# Vérifier que c'est une zone de placement alliée
+	if cell_data["state"] != CellState.PLACEMENT_ALLY:
+		print("[CombatGrid] ❌ Placement invalide - Cliquer sur une zone bleue")
+		return false
+	
+	# Vérifier que la cellule n'est pas occupée
+	if cell_data["occupied_by"] != "":
+		print("[CombatGrid] ❌ Cellule déjà occupée")
+		return false
+	
+	# Placer le joueur ici
+	place_player_at(grid_pos)
+	return true
+
+## Place le joueur à une position spécifique
+func place_player_at(grid_pos: Vector2i):
+	"""Place le joueur à la position spécifiée"""
+	# Déplacer le joueur physiquement
+	var world_pos = grid_to_screen(grid_pos) + global_position
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.current_player:
+		game_manager.current_player.global_position = world_pos
+		
+		# Orientation vers la droite (vers les monstres)
+		var player = game_manager.current_player
+		if player.has_method("set_facing_direction"):
+			player.set_facing_direction(1)
+		elif player.sprite and player.sprite is Sprite2D:
+			player.sprite.flip_h = false
+	
+	# Marquer la cellule comme occupée
+	set_cell_occupied(grid_pos, "player")
+	set_cell_state(grid_pos, CellState.OCCUPIED_ALLY)
+	
+	print("[CombatGrid] ✅ Joueur placé en position: ", grid_pos)
+
+## Gestionnaire de clic sur une cellule
+func _on_cell_clicked(grid_pos: Vector2i):
+	"""Appelé quand l'utilisateur clique sur une cellule de la grille"""
+	return func(viewport: Node, event: InputEvent, shape_idx: int):
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				print("[CombatGrid] 🖱️ Clic sur cellule: ", grid_pos)
+				handle_cell_click(grid_pos)
 
 ## Met à jour les portées d'action selon le combattant actuel et l'action sélectionnée
 func _update_action_ranges():
@@ -345,7 +441,11 @@ func initialize_grid(new_width: int, new_height: int):
 	
 	# (Re)Générer les visuels
 	_generate_visual_grid()
-	print("[CombatGrid] ✅ Grille créée avec %d cellules" % [grid_width * grid_height])
+	
+	# Créer les zones de placement style Dofus par défaut
+	_create_default_dofus_placement_zones()
+	
+	print("[CombatGrid] ✅ Grille Dofus %dx%d créée avec %d cellules et zones de placement" % [grid_width, grid_height, grid_width * grid_height])
 
 ## Obtient les données d'une cellule à partir de coordonnées de grille
 func get_cell_data(grid_pos: Vector2i) -> Dictionary:
@@ -428,7 +528,15 @@ func handle_cell_click(grid_pos: Vector2i):
 		invalid_action.emit("Cellule inaccessible")
 		return
 	
-	# Valider l'action selon le type
+	# Vérifier si on est en phase de placement
+	if _is_placement_phase():
+		if handle_placement_click(grid_pos):
+			return
+		else:
+			invalid_action.emit("Placement invalide - Cliquer sur une zone bleue")
+			return
+	
+	# Mode combat normal
 	var action_data = {}
 	var is_valid = false
 	
@@ -445,6 +553,20 @@ func handle_cell_click(grid_pos: Vector2i):
 		cell_clicked.emit(grid_pos, current_action, action_data)
 	else:
 		invalid_action.emit("Action invalide pour cette cellule")
+
+## Vérifie si on est en phase de placement
+func _is_placement_phase() -> bool:
+	"""Vérifie si on est actuellement en phase de placement"""
+	if current_combat_state:
+		return current_combat_state.status == CombatState.CombatStatus.PLACEMENT
+	
+	# Si pas d'état de combat, on assume qu'on est en placement si on voit des zones
+	for y in range(grid_height):
+		for x in range(grid_width):
+			var cell_data = get_cell_data(Vector2i(x, y))
+			if not cell_data.is_empty() and cell_data["state"] == CellState.PLACEMENT_ALLY:
+				return true
+	return false
 
 ## Valide un mouvement vers une position
 func _validate_movement(target_pos: Vector2i, action_data: Dictionary) -> bool:
@@ -529,16 +651,16 @@ func _generate_visual_grid():
 			var grid_pos = Vector2i(x, y)
 			_create_cell_visual(grid_pos)
 
-## Crée le polygone pour une seule cellule
+## Crée le polygone pour une seule cellule (losange Dofus authentique)
 func _create_cell_visual(grid_pos: Vector2i):
 	var screen_pos = grid_to_screen(grid_pos)
 	
-	# Définir les points de la cellule (losange isométrique)
+	# Définir les points de la cellule (losange Dofus parfait)
 	var corners: Array[Vector2] = [
-		Vector2(0, -CELL_HEIGHT / 2.0), # Haut
-		Vector2(CELL_WIDTH / 2.0, 0),   # Droite
-		Vector2(0, CELL_HEIGHT / 2.0),  # Bas
-		Vector2(-CELL_WIDTH / 2.0, 0)   # Gauche
+		Vector2(0, -CELL_HEIGHT / 2.0),     # Haut
+		Vector2(CELL_WIDTH / 2.0, 0),       # Droite  
+		Vector2(0, CELL_HEIGHT / 2.0),      # Bas
+		Vector2(-CELL_WIDTH / 2.0, 0)       # Gauche
 	]
 	
 	var packed_corners: PackedVector2Array = PackedVector2Array()
@@ -551,16 +673,30 @@ func _create_cell_visual(grid_pos: Vector2i):
 	cell.color = _get_color_for_cell_state(CellState.NORMAL)
 	cell.position = screen_pos
 	
-	# Créer une bordure
+	# Créer une bordure style Dofus (visible et contrastée)
 	var line = Line2D.new()
 	line.name = "Border"
 	line.points = packed_corners
 	line.add_point(corners[0]) # Fermer la boucle
-	line.width = 1.0
-	line.default_color = Color.BLACK
+	line.width = 2.0  # Plus épaisse pour meilleure visibilité
+	line.default_color = Color(0.1, 0.1, 0.1, 0.9)  # Noir presque opaque
+	line.z_index = 1
 	cell.add_child(line)
 
 	grid_visual_parent.add_child(cell)
+	
+	# Ajouter une zone de clic pour la cellule
+	var click_area = Area2D.new()
+	click_area.name = "ClickArea"
+	var collision_shape = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(CELL_WIDTH, CELL_HEIGHT)
+	collision_shape.shape = shape
+	click_area.add_child(collision_shape)
+	cell.add_child(click_area)
+	
+	# Connecter le signal de clic
+	click_area.input_event.connect(_on_cell_clicked(grid_pos))
 	
 	# Mettre à jour la couleur initiale
 	_update_cell_visual(grid_pos)
@@ -585,29 +721,29 @@ func _update_cell_visual(grid_pos: Vector2i):
 			else:
 				border.default_color = Color(0.2, 0.2, 0.2)
 
-## Retourne la couleur correspondant à un état de cellule (style Dofus)
+## Retourne la couleur correspondant à un état de cellule (style Dofus authentique)
 func _get_color_for_cell_state(state: CellState) -> Color:
 	match state:
 		CellState.NORMAL:
 			return Color(0, 0, 0, 0) # Transparent
 		CellState.HIGHLIGHTED:
-			return Color(1, 1, 1, 0.2) # Blanc transparent
+			return Color(1, 1, 1, 0.4) # Blanc transparent
 		CellState.MOVEMENT_RANGE:
-			return Color(0.2, 0.8, 1.0, 0.4) # Bleu clair (PM)
+			return Color(0.2, 0.7, 1.0, 0.6) # Bleu mouvement (PM)
 		CellState.SPELL_RANGE:
-			return Color(1.0, 0.4, 0.2, 0.4) # Rouge orangé (Sort)
+			return Color(1.0, 0.3, 0.3, 0.6) # Rouge sort
 		CellState.PLACEMENT_ALLY:
-			return Color(0.2, 0.8, 1.0, 0.6) # Cyan (Placement allié)
+			return Color(0.0, 0.5, 1.0, 0.8) # Bleu Dofus plus vif (zone alliée)
 		CellState.PLACEMENT_ENEMY:
-			return Color(1.0, 0.6, 0.2, 0.6) # Orange (Placement ennemi)
+			return Color(1.0, 0.1, 0.1, 0.8) # Rouge Dofus plus vif (zone ennemie)
 		CellState.PATH_PREVIEW:
-			return Color(0.2, 1.0, 0.5, 0.5) # Vert (Chemin)
+			return Color(0.0, 1.0, 0.0, 0.7) # Vert chemin
 		CellState.OCCUPIED_ALLY:
-			return Color(0.0, 0.8, 0.0, 0.3) # Vert (Allié)
+			return Color(0.0, 0.7, 1.0, 0.5) # Bleu allié
 		CellState.OCCUPIED_ENEMY:
-			return Color(0.8, 0.0, 0.0, 0.3) # Rouge (Ennemi)
+			return Color(1.0, 0.0, 0.0, 0.5) # Rouge ennemi
 		CellState.INVALID_TARGET:
-			return Color(0.5, 0.5, 0.5, 0.4) # Gris (Invalide)
+			return Color(0.5, 0.5, 0.5, 0.4) # Gris invalide
 	return Color.BLACK
 
 # ================================

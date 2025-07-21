@@ -142,7 +142,7 @@ func _connect_pending(p: PendingPeer) -> bool:
 			# TCP is ready, create WS peer
 			print("TCP connected, upgrading to WebSocket...")
 			p.ws = WebSocketPeer.new()
-			p.ws.accept_stream(p.tcp)
+			p.ws.accept_stream_peer(p.tcp)
 			return false # WebSocketPeer connection is pending.
 
 func send_response(client_id: int, response: Dictionary) -> int:

@@ -22,7 +22,8 @@ enum ActionType {
 	CAST_SPELL,
 	PASS_TURN,
 	USE_ITEM,
-	SURRENDER
+	SURRENDER,
+	READY_FOR_COMBAT
 }
 
 enum EffectType {

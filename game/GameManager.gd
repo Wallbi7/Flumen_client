@@ -62,6 +62,7 @@ var player_scene = preload("res://game/players/Player.tscn")  # Scène du joueur
 ## =====================
 var monsters: Dictionary = {}                   # monster_id -> Monster node
 var monster_scene = preload("res://game/monsters/Monster.tscn")  # Scène du monstre à instancier
+var monster_to_combat: Monster = null           # Monstre avec qui on va combattre après déplacement
 
 ## RÉFÉRENCES AUX MANAGERS
 ## ========================
@@ -229,6 +230,11 @@ func _connect_websocket_signals():
 	# =================
 	websocket_manager.connect("combat_started", _on_combat_started_from_server) # Renommée pour clarté
 	print("[GameManager] ✅ Signal combat_started connecté")
+	
+	# SIGNAUX DE MONSTRES
+	# ===================
+	websocket_manager.connect("monsters_data", _on_monsters_data_received)
+	print("[GameManager] ✅ Signal monsters_data connecté")
 	
 	print("[GameManager] Tous les signaux WebSocket connectés")
 
@@ -885,24 +891,27 @@ func _load_monsters_for_map(map_id: String):
 	print("[GameManager] === CHARGEMENT DES MONSTRES ===")
 	print("[GameManager] Map: ", map_id)
 	
-	# Requête HTTP pour récupérer les monstres de la map
-	var token = auth_manager.get_access_token()
-	if token == "":
-		print("[GameManager] ❌ Token manquant pour charger les monstres")
-		return
+	# Demander les monstres via WebSocket au lieu de HTTP
+	var manager = websocket_manager if websocket_manager != null else ws_manager
+	if manager and manager.has_method("send_text"):
+		var message = {
+			"type": "request_monsters",
+			"data": {
+				"map_id": map_id
+			}
+		}
+		manager.send_text(JSON.stringify(message))
+		print("[GameManager] ✅ Requête monstres envoyée via WebSocket pour: ", map_id)
+	else:
+		print("[GameManager] ❌ WebSocket non disponible, impossible de charger les monstres")
+		
+		# Fallback: créer des monstres de test localement
+		print("[GameManager] 🧪 Création de monstres de test en fallback...")
+		_create_test_monsters_fallback()
 	
-	var url = "http://127.0.0.1:9090/api/v1/monsters/map/" + map_id
-	var headers = [
-		"Authorization: Bearer " + token,
-		"Content-Type: application/json"
-	]
-	
-	var request = HTTPRequest.new()
-	add_child(request)
-	request.request_completed.connect(_on_monsters_loaded)
-	request.request(url, headers, HTTPClient.METHOD_GET)
-	
-	print("[GameManager] Requête des monstres envoyée pour: ", map_id)
+	# TOUJOURS créer des monstres de test pour debug
+	print("[GameManager] 🧪 Ajout de monstres de test supplémentaires...")
+	_create_test_monsters_fallback()
 
 func _on_monsters_loaded(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
 	"""Callback quand les monstres sont chargés"""
@@ -935,14 +944,14 @@ func _on_monsters_loaded(_result: int, response_code: int, _headers: PackedStrin
 
 func _create_monster(monster_data: Dictionary):
 	"""Crée un monstre à partir des données serveur"""
-	var monster_name = monster_data.get("template_id", "")
-	if monster_name == "":
-		print("[GameManager] ❌ Template ID monstre manquant")
+	var monster_id = monster_data.get("id", "")
+	if monster_id == "":
+		print("[GameManager] ❌ ID monstre manquant")
 		return
 	
 	# Vérifier si le monstre existe déjà
-	if monsters.has(monster_name):
-		print("[GameManager] Monstre déjà existant: ", monster_name)
+	if monsters.has(monster_id):
+		print("[GameManager] Monstre déjà existant: ", monster_id)
 		return
 	
 	# Créer l'instance du monstre
@@ -952,13 +961,13 @@ func _create_monster(monster_data: Dictionary):
 	# Ajouter à la map
 	if current_map:
 		current_map.add_child(monster_instance)
-		monsters[monster_name] = monster_instance
+		monsters[monster_id] = monster_instance
 		monsters_on_map.append(monster_instance)
 		
 		# Connecter tous les signaux d'interaction
 		connect_monster_signals(monster_instance)
 		
-		print("[GameManager] ✅ Monstre créé: ", monster_data.get("template_id", "Inconnu"))
+		print("[GameManager] ✅ Monstre créé: ", monster_data.get("template_id", "Inconnu"), " (ID: ", monster_id, ")")
 	else:
 		print("[GameManager] ❌ Pas de map pour ajouter le monstre")
 		monster_instance.queue_free()
@@ -1003,6 +1012,189 @@ func connect_monster_signals(monster: Monster):
 	else:
 		print("[GameManager] ⚠️ Le signal 'monster_died' est manquant sur la scène Monster.")
 
+## HANDLERS POUR LES SIGNAUX DE MONSTRES
+## ====================================
+
+func _on_monster_clicked(monster: Monster):
+	"""Gère le clic gauche sur un monstre pour initier le combat"""
+	print("[GameManager] 🎯 Clic sur monstre détecté: ", monster.monster_name)
+	
+	# Vérifier si on est déjà en combat
+	if current_state == GameState.IN_COMBAT:
+		print("[GameManager] ⚠️ Combat déjà en cours, clic ignoré")
+		return
+	
+	# Vérifier si on a un joueur principal
+	if not current_player:
+		print("[GameManager] ❌ Pas de joueur principal trouvé")
+		return
+	
+	# Initier le combat
+	print("[GameManager] 🔥 Initiation du combat avec: ", monster.monster_name)
+	_initiate_combat_with_monster(monster)
+
+func _on_monster_right_clicked(monster: Monster):
+	"""Gère le clic droit sur un monstre - Style Dofus : déplacement puis combat"""
+	print("[GameManager] 🎯 Clic droit sur monstre: ", monster.monster_name)
+	
+	# Vérifier si on est déjà en combat
+	if current_state == GameState.IN_COMBAT:
+		print("[GameManager] ⚠️ Combat déjà en cours, clic ignoré")
+		return
+	
+	# Vérifier si on a un joueur principal
+	if not current_player:
+		print("[GameManager] ❌ Pas de joueur principal trouvé")
+		return
+	
+	# Style Dofus : déplacement puis combat
+	print("[GameManager] 🏃 Déplacement vers le monstre: ", monster.monster_name)
+	_move_player_to_monster_then_combat(monster)
+	
+func _on_monster_hovered(monster: Monster, is_hovered: bool):
+	"""Gère le survol des monstres pour le tooltip"""
+	if is_hovered:
+		print("[GameManager] 👁️ Survol monstre: ", monster.monster_name)
+		if monster_tooltip:
+			monster_tooltip.show_tooltip(monster)
+	else:
+		print("[GameManager] 👁️ Fin survol monstre: ", monster.monster_name)
+		if monster_tooltip:
+			monster_tooltip.hide_tooltip()
+
+func _on_monster_died(monster: Monster):
+	"""Gère la mort d'un monstre"""
+	print("[GameManager] 💀 Monstre mort: ", monster.monster_name)
+	# TODO: Gestion des récompenses, XP, etc.
+
+func _on_monsters_data_received(monsters_data: Array):
+	"""Callback quand les données des monstres sont reçues via WebSocket"""
+	print("[GameManager] === DONNÉES MONSTRES REÇUES ===")
+	print("[GameManager] Nombre de monstres: ", monsters_data.size())
+	
+	# Créer les monstres
+	for monster_data in monsters_data:
+		print("[GameManager] Processing monster: ", monster_data)
+		_create_monster(monster_data)
+
+func _create_test_monsters_fallback():
+	"""Crée quelques monstres de test en fallback"""
+	print("[GameManager] 🧪 Création de 3 monstres de test...")
+	
+	# Créer des données de monstre factices
+	var test_monsters = [
+		{
+			"id": "test_tofu_1",
+			"template_id": "tofu",
+			"level": 1,
+			"is_alive": true,
+			"behavior": "passive",
+			"pos_x": 800.0,
+			"pos_y": 500.0,
+			"stats": {
+				"health": 15,
+				"max_health": 15,
+				"strength": 5,
+				"intelligence": 0,
+				"agility": 8,
+				"vitality": 8
+			}
+		},
+		{
+			"id": "test_bouftou_1", 
+			"template_id": "bouftou",
+			"level": 1,
+			"is_alive": true,
+			"behavior": "neutral",
+			"pos_x": 1100.0,
+			"pos_y": 600.0,
+			"stats": {
+				"health": 20,
+				"max_health": 20,
+				"strength": 8,
+				"intelligence": 0,
+				"agility": 5,
+				"vitality": 10
+			}
+		},
+		{
+			"id": "test_larve_1",
+			"template_id": "larve", 
+			"level": 2,
+			"is_alive": true,
+			"behavior": "aggressive",
+			"pos_x": 900.0,
+			"pos_y": 400.0,
+			"stats": {
+				"health": 25,
+				"max_health": 25,
+				"strength": 6,
+				"intelligence": 4,
+				"agility": 3,
+				"vitality": 12
+			}
+		}
+	]
+	
+	for monster_data in test_monsters:
+		_create_monster(monster_data)
+
+func _move_player_to_monster_then_combat(monster: Monster):
+	"""Déplace le joueur vers le monstre puis lance le combat (Style Dofus)"""
+	print("[GameManager] 🏃 Style Dofus : Déplacement vers ", monster.monster_name)
+	
+	# Calculer la position adjacente au monstre
+	var monster_pos = monster.global_position
+	var combat_position = Vector2(monster_pos.x - 50, monster_pos.y)  # 50 pixels à gauche du monstre
+	
+	# Stocker le monstre pour le combat après déplacement
+	monster_to_combat = monster
+	
+	# Déplacer le joueur vers la position de combat
+	if current_player:
+		print("[GameManager] 🎯 Déplacement vers position: ", combat_position)
+		current_player.move_to_position(combat_position)
+		
+		# Connecter le signal de fin de mouvement (une seule fois)
+		if not current_player.is_connected("player_moved", _on_player_reached_monster):
+			current_player.connect("player_moved", _on_player_reached_monster)
+	else:
+		print("[GameManager] ❌ Pas de joueur pour se déplacer")
+
+func _on_player_reached_monster(new_position: Vector2):
+	"""Appelé quand le joueur atteint le monstre"""
+	print("[GameManager] 🎯 Joueur arrivé à destination, lancement du combat")
+	
+	# Déconnecter le signal pour éviter les déclenchements multiples
+	if current_player and current_player.is_connected("player_moved", _on_player_reached_monster):
+		current_player.disconnect("player_moved", _on_player_reached_monster)
+	
+	# Lancer le combat avec le monstre stocké
+	if monster_to_combat:
+		print("[GameManager] ⚔️ Combat avec: ", monster_to_combat.monster_name)
+		_initiate_combat_with_monster(monster_to_combat)
+		monster_to_combat = null  # Nettoyer la référence
+
+func _initiate_combat_with_monster(monster: Monster):
+	"""Lance le combat avec un monstre spécifique"""
+	print("[GameManager] ⚔️ Lancement du combat avec: ", monster.monster_name)
+	
+	# Créer les données de combat
+	var combat_data = {
+		"combat_id": "combat_" + str(Time.get_ticks_msec()),
+		"monster_id": monster.monster_id,  # Utiliser l'UUID réel du monstre
+		"monster_name": monster.monster_name,
+		"monster_level": monster.level,
+		"monster_type": monster.monster_type,
+		"player_id": current_character.get("id", ""),
+		"player_name": current_character.get("name", ""),
+		"combat_type": "PVE",
+		"started_at": Time.get_time_string_from_system()
+	}
+	
+	# Démarrer le combat
+	start_combat_with_monster(monster)
+
 func _clear_monsters():
 	"""Supprime tous les monstres"""
 	print("[GameManager] Suppression des monstres")
@@ -1017,30 +1209,6 @@ func _clear_monsters():
 	if monster_tooltip:
 		monster_tooltip.hide_tooltip()
 
-func _on_monster_clicked(monster: Monster):
-	"""Clic gauche : afficher le menu contextuel du monstre."""
-	print("[GameManager] 📜 Menu contextuel demandé pour: ", monster.monster_name)
-	var mouse_pos = get_viewport().get_mouse_position()
-	_open_monster_context_menu(monster, mouse_pos)
-
-func _on_monster_right_clicked(monster: Monster):
-	"""Clic droit : déplacer le joueur vers le monstre puis attaquer."""
-	print("[GameManager] ⚔️ Clic droit sur monstre pour attaque: ", monster.monster_name)
-	_initiate_attack(monster)
-
-func _on_monster_died(monster: Monster):
-	"""Callback quand un monstre meurt"""
-	print("[GameManager] Monstre mort: ", monster.monster_name)
-	
-	# Supprimer de la liste en utilisant le nom comme clé (puisque monster_id n'existe plus)
-	var monster_key = monster.monster_name
-	if monsters.has(monster_key):
-		monsters.erase(monster_key)
-	
-	# Ici, on pourrait :
-	# - Donner de l'XP au joueur
-	# - Générer du butin
-	# - Notifier le serveur
 
 ## SIGNAUX
 ## =======
@@ -1070,18 +1238,6 @@ func setup_monster_tooltip():
 	
 	print("[GameManager] Système de tooltip initialisé")
 
-func _on_monster_hovered(monster: Monster, is_hovering: bool):
-	"""Gère le survol des monstres"""
-	if not monster_tooltip:
-		return
-	
-	if is_hovering:
-		# Afficher le tooltip
-		var mouse_pos = get_viewport().get_mouse_position()
-		monster_tooltip.show_monster_info(monster, mouse_pos)
-	else:
-		# Cacher le tooltip
-		monster_tooltip.hide_tooltip()
 
 func start_combat_with_monster(monster: Monster):
 	"""Démarre un combat tactique avec un monstre en envoyant une requête au serveur."""
@@ -1091,10 +1247,10 @@ func start_combat_with_monster(monster: Monster):
 		print("[GameManager] ❌ Monstre invalide, impossible de lancer le combat.")
 		return
 		
-	# Utiliser le nom du monstre comme identifiant puisque monster_id n'existe plus
-	var monster_id = monster.monster_name
+	# Utiliser l'UUID réel du monstre
+	var monster_id = monster.monster_id
 	if monster_id == "":
-		print("[GameManager] ❌ Nom de monstre vide, impossible de lancer le combat.")
+		print("[GameManager] ❌ ID de monstre vide, impossible de lancer le combat.")
 		return
 
 	print("[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: ", monster_id)
@@ -1275,6 +1431,12 @@ func _input(event):
 				combat_manager.end_combat(CombatTurnManager.Team.ALLY)
 			current_state = GameState.IN_GAME
 			print("[GameManager] ✅ Système de combat réinitialisé")
+	
+	# NOUVEAU : Force l'état IN_GAME avec F
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F:
+		print("[GameManager] 🔧 Force l'état IN_GAME")
+		current_state = GameState.IN_GAME
+		print("[GameManager] ✅ État forcé: IN_GAME")
 	
 	# NOUVEAU : Debug visuel de la grille avec G
 	if event is InputEventKey and event.pressed and event.keycode == KEY_G:

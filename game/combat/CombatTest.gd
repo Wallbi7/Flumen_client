@@ -207,11 +207,8 @@ func _setup_input_handlers():
 # ================================
 
 func _input(event):
-	if not event.pressed:
-		return
-	
 	# Tests de combat avec des touches non utilisées
-	if event is InputEventKey:
+	if event is InputEventKey and event.pressed:
 		var ctrl_pressed = event.ctrl_pressed
 		
 		match event.keycode:

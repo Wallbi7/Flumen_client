@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://c83pgew26m42x" path="res://MD/test_placement_manual.gd" id="1"]
+
+[node name="TestPlacementScene" type="Node2D"]
+script = ExtResource("1")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Instructions" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -200.0
+offset_right = 800.0
+offset_bottom = -10.0
+text = "=== TEST PLACEMENT STYLE DOFUS ===
+
+ÉTAT: La grille devrait apparaître automatiquement après 0.5 secondes
+
+INSTRUCTIONS:
+- La grille isométrique 17x15 s'affiche avec zones de placement
+- Zones BLEUES (côté gauche) = placement alliés
+- Zones ROUGES (côté droit) = placement ennemis
+- Appuyez sur ESPACE pour lancer un vrai test de combat
+- Cliquez sur une zone bleue pour placer votre personnage
+
+COMMANDES:
+G: Afficher/masquer la grille
+ESPACE: Lancer le test de placement complet
+ESCAPE: Retour au menu principal
+
+SYSTÈME DOFUS AUTHENTIQUE:
+✅ Grille isométrique (52x26px par cellule)
+✅ 4 colonnes bleues à gauche (alliés)
+✅ 4 colonnes rouges à droite (ennemis)
+✅ Zones de placement colorées
+✅ Validation des clics autorisés
+✅ Cellules en losange style Dofus
+✅ Gestion des collisions"
+vertical_alignment = 1

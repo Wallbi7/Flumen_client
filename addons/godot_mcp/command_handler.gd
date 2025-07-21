@@ -17,13 +17,13 @@ func _ready():
 	print("Command handler initialized and ready to process commands")
 
 func _initialize_command_processors():
-	# Create and add all command processors
-	var node_commands = MCPNodeCommands.new()
-	var script_commands = MCPScriptCommands.new()
-	var scene_commands = MCPSceneCommands.new() 
-	var project_commands = MCPProjectCommands.new()
-	var editor_commands = MCPEditorCommands.new()
-	var editor_script_commands = MCPEditorScriptCommands.new()  # Add our new processor
+	# Create and add all command processors using preload
+	var node_commands = preload("res://addons/godot_mcp/commands/node_commands.gd").new()
+	var script_commands = preload("res://addons/godot_mcp/commands/script_commands.gd").new()
+	var scene_commands = preload("res://addons/godot_mcp/commands/scene_commands.gd").new()
+	var project_commands = preload("res://addons/godot_mcp/commands/project_commands.gd").new()
+	var editor_commands = preload("res://addons/godot_mcp/commands/editor_commands.gd").new()
+	var editor_script_commands = preload("res://addons/godot_mcp/commands/editor_script_commands.gd").new()
 	
 	# Set server reference for all processors
 	node_commands._websocket_server = _websocket_server

@@ -27,7 +27,7 @@ class WebSocketClient:
 	
 	func upgrade_to_websocket() -> bool:
 		ws = WebSocketPeer.new()
-		var err = ws.accept_stream(tcp)
+		var err = ws.accept_stream_peer(tcp)
 		return err == OK
 
 var clients := {}

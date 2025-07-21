@@ -13,7 +13,7 @@ config_version=5
 config/name="Flumen_client"
 run/main_scene="res://game/LoginScene.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://MD/icon.svg"
 
 [autoload]
 
@@ -25,6 +25,8 @@ ServerConfig="*res://game/ServerConfig.gd"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=2
+window/stretch/mode="canvas_items"
 
 [editor_plugins]
 

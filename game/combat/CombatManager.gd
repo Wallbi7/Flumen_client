@@ -237,14 +237,279 @@ func start_combat_from_server(combat_data: Dictionary):
 	if not combat_grid or not combat_ui:
 		initialize_combat_systems()
 	
-	# Mettre à jour tous les systèmes avec le nouvel état
-	_update_all_systems()
+	# TRANSITION STYLE DOFUS : Démarrer en phase de placement
+	_start_placement_phase()
+	
+	combat_started.emit(current_combat_state)
+	print("[CombatManager] ✅ Combat démarré - ID: ", current_combat_id)
+
+## Démarre la phase de placement style Dofus
+func _start_placement_phase():
+	"""Démarre la phase de placement où les joueurs choisissent leurs positions"""
+	print("[CombatManager] 🎯 === PHASE DE PLACEMENT DOFUS ===")
+	
+	# 1. Créer l'effet de transition
+	_create_transition_effect()
+	
+	# 2. Masquer temporairement la carte du monde
+	_hide_world_map()
+	
+	# 3. Centrer la caméra sur la zone de combat
+	_center_camera_on_combat()
+	
+	# 4. Afficher la grille avec les zones de placement
+	_show_placement_grid()
+	
+	# 5. Afficher l'interface de placement
+	_show_placement_interface()
+	
+	# 6. Positionner les monstres (mais pas le joueur)
+	_place_monsters_only()
+	
+	print("[CombatManager] ✅ Phase de placement initiée - Joueur peut choisir sa position")
+
+## Affiche la grille avec les zones de placement visibles
+func _show_placement_grid():
+	"""Affiche la grille de combat avec les zones de placement bleues et rouges"""
+	if combat_grid:
+		combat_grid.show_grid()
+		# Forcer l'affichage des zones de placement
+		combat_grid._create_default_dofus_placement_zones()
+		print("[CombatManager] ✅ Grille de placement affichée avec zones bleu/rouge")
+
+## Affiche l'interface spécifique à la phase de placement
+func _show_placement_interface():
+	"""Affiche l'interface de placement avec le bouton Prêt"""
+	if combat_ui:
+		combat_ui.show_combat_ui()
+		# Mettre en mode placement
+		combat_ui.set_placement_mode(true)
+		print("[CombatManager] ✅ Interface de placement affichée")
+
+## Place uniquement les monstres, pas le joueur
+func _place_monsters_only():
+	"""Place les monstres dans la zone rouge sans toucher au joueur"""
+	if not combat_grid:
+		return
+		
+	var grid_width = combat_grid.grid_width
+	var grid_height = combat_grid.grid_height
+	
+	# Téléporter seulement les monstres (zone rouge)
+	if game_manager and game_manager.monsters:
+		var monster_base_pos = Vector2i(grid_width - 3, int(grid_height / 2))
+		var monster_count = 0
+		for monster_id in game_manager.monsters.keys():
+			var monster = game_manager.monsters[monster_id]
+			if monster and is_instance_valid(monster):
+				var adjusted_pos = Vector2i(monster_base_pos.x, monster_base_pos.y + monster_count - 1)
+				var monster_world_pos = combat_grid.grid_to_screen(adjusted_pos) + combat_grid.global_position
+				monster.global_position = monster_world_pos
+				
+				# Orientation vers le joueur
+				if monster.has_method("set_facing_direction"):
+					monster.set_facing_direction(-1)
+				elif monster.sprite and monster.sprite is Sprite2D:
+					monster.sprite.flip_h = true
+				
+				print("[CombatManager] ✅ Monstre placé en zone rouge: ", adjusted_pos)
+				monster_count += 1
+				if monster_count >= 3:
+					break
+
+## Confirme le placement et démarre le combat
+func confirm_placement():
+	"""Appelé quand le joueur appuie sur le bouton Prêt"""
+	print("[CombatManager] ✅ Placement confirmé - Démarrage du combat")
+	
+	# Cacher les zones de placement
+	if combat_grid:
+		combat_grid.clear_placement_zones()
+	
+	# Mettre l'interface en mode combat
+	if combat_ui:
+		combat_ui.set_placement_mode(false)
+	
+	# Démarrer le vrai combat
+	_start_actual_combat()
+
+## Démarre le combat après la phase de placement
+func _start_actual_combat():
+	"""Démarre le combat après que tous les joueurs soient placés"""
+	print("[CombatManager] ⚔️ === DÉBUT DU COMBAT ===")
+	
+	# Mettre à jour l'état si on a un état de combat
+	if current_combat_state:
+		current_combat_state.status = CombatState.CombatStatus.IN_PROGRESS
+	
+	# Afficher les portées d'action selon le tour
+	if combat_grid:
+		combat_grid._update_action_ranges()
+	
+	print("[CombatManager] ✅ Combat démarré - Phase active")
+
+func _start_combat_transition():
+	"""Démarre la transition style Dofus vers le mode combat"""
+	print("[CombatManager] 🌟 Démarrage transition combat style Dofus...")
+	
+	# 1. Créer l'effet de transition (fondu)
+	_create_transition_effect()
+	
+	# 2. Masquer temporairement la carte du monde
+	_hide_world_map()
+	
+	# 3. Centrer la caméra sur la zone de combat
+	_center_camera_on_combat()
+	
+	# 4. Téléporter les entités sur la grille
+	_teleport_entities_to_grid()
+	
+	# 5. Afficher l'interface de combat
+	_show_combat_interface()
+	
+	# 6. Terminer la transition
+	_finish_transition()
+
+func _create_transition_effect():
+	"""Crée l'effet de transition visuel"""
+	print("[CombatManager] ✨ Création effet de transition...")
+	
+	# Créer un overlay noir pour la transition
+	var transition_overlay = ColorRect.new()
+	transition_overlay.color = Color(0, 0, 0, 0)  # Noir transparent
+	transition_overlay.size = get_viewport().size
+	transition_overlay.name = "CombatTransition"
+	
+	# Ajouter à la scène
+	get_tree().current_scene.add_child(transition_overlay)
+	
+	# Animation de fondu entrant
+	var tween = create_tween()
+	tween.tween_property(transition_overlay, "color:a", 1.0, 0.3)  # Fondu vers noir
+	tween.tween_callback(_on_transition_mid_point)
+	tween.tween_property(transition_overlay, "color:a", 0.0, 0.3)  # Fondu depuis noir
+	tween.tween_callback(_on_transition_complete.bind(transition_overlay))
+
+func _on_transition_mid_point():
+	"""Appelé au milieu de la transition - moment de la téléportation"""
+	print("[CombatManager] 🎯 Milieu de transition - Téléportation...")
+	
+	# Masquer la carte du monde
+	_hide_world_map()
+	
+	# Centrer la caméra
+	_center_camera_on_combat()
+	
+	# Téléporter les entités
+	_teleport_entities_to_grid()
+
+func _on_transition_complete(transition_overlay: ColorRect):
+	"""Appelé à la fin de la transition"""
+	print("[CombatManager] ✅ Transition terminée")
+	
+	# Supprimer l'overlay de transition
+	if transition_overlay:
+		transition_overlay.queue_free()
 	
 	# Afficher l'interface de combat
 	_show_combat_interface()
 	
-	combat_started.emit(current_combat_state)
-	print("[CombatManager] ✅ Combat démarré - ID: ", current_combat_id)
+	# Mettre à jour tous les systèmes
+	_update_all_systems()
+
+func _hide_world_map():
+	"""Masque la carte du monde pendant le combat"""
+	print("[CombatManager] 🗺️ Masquage de la carte du monde...")
+	
+	if game_manager and game_manager.current_map:
+		game_manager.current_map.visible = false
+		print("[CombatManager] ✅ Carte masquée")
+
+func _center_camera_on_combat():
+	"""Centre la caméra sur la zone de combat"""
+	print("[CombatManager] 📷 Centrage caméra sur combat...")
+	
+	# Obtenir les dimensions de l'écran
+	var screen_size = get_viewport().get_visible_rect().size
+	var screen_center = screen_size / 2.0
+	
+	# Obtenir la caméra principale
+	var camera = get_viewport().get_camera_2d()
+	if camera:
+		# Centrer sur le centre de l'écran
+		camera.global_position = screen_center
+		print("[CombatManager] ✅ Caméra centrée sur: ", screen_center)
+	
+	# La grille se centre automatiquement via sa fonction _center_grid_on_screen()
+	if combat_grid:
+		combat_grid._center_grid_on_screen()
+		print("[CombatManager] ✅ Grille recentrée automatiquement")
+
+func _teleport_entities_to_grid():
+	"""Téléporte le joueur et les monstres sur la grille de combat"""
+	print("[CombatManager] 🌀 Téléportation des entités sur la grille...")
+	
+	if not combat_grid:
+		print("[CombatManager] ⚠️ Grille de combat non disponible")
+		return
+	
+	# Obtenir les dimensions adaptatives de la grille
+	var screen_size = get_viewport().get_visible_rect().size
+	var grid_center = screen_size / 2.0
+	
+	# Utiliser les dimensions de cellules de la grille
+	var cell_width = combat_grid.CELL_WIDTH
+	var cell_height = combat_grid.CELL_HEIGHT
+	
+	# Calculer les positions sur la grille (en coordonnées de grille)
+	var grid_width = combat_grid.grid_width
+	var grid_height = combat_grid.grid_height
+	
+	# Téléporter le joueur (zone bleue - position Dofus classique)
+	if game_manager and game_manager.current_player:
+		var player_grid_pos = Vector2i(2, int(grid_height / 2))  # 3ème colonne, milieu
+		var player_world_pos = combat_grid.grid_to_screen(player_grid_pos) + combat_grid.global_position
+		game_manager.current_player.global_position = player_world_pos
+		
+		# Faire regarder le joueur vers les monstres (vers la droite)
+		var player = game_manager.current_player
+		if player.has_method("set_facing_direction"):
+			player.set_facing_direction(1)  # Face à droite vers les monstres
+		elif player.sprite and player.sprite is Sprite2D:
+			player.sprite.flip_h = false  # Normal (face à droite)
+		
+		print("[CombatManager] ✅ Joueur téléporté à: ", player_world_pos, " (grille: ", player_grid_pos, ") - Zone bleue Dofus")
+	
+	# Téléporter les monstres (zone rouge - position Dofus classique)
+	if game_manager and game_manager.monsters:
+		var monster_base_pos = Vector2i(grid_width - 3, int(grid_height / 2))  # 3ème colonne depuis la droite
+		var monster_count = 0
+		for monster_id in game_manager.monsters.keys():
+			var monster = game_manager.monsters[monster_id]
+			if monster and is_instance_valid(monster):
+				# Positionner les monstres en ligne dans la zone rouge
+				var adjusted_pos = Vector2i(monster_base_pos.x, monster_base_pos.y + monster_count - 1)
+				var monster_world_pos = combat_grid.grid_to_screen(adjusted_pos) + combat_grid.global_position
+				monster.global_position = monster_world_pos
+				
+				# Faire regarder le monstre vers le joueur (inverser le sprite)
+				if monster.has_method("set_facing_direction"):
+					monster.set_facing_direction(-1)  # Face à gauche vers le joueur
+				elif monster.sprite and monster.sprite is Sprite2D:
+					monster.sprite.flip_h = true  # Inverser horizontalement
+				
+				print("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone rouge Dofus")
+				monster_count += 1
+				if monster_count >= 3:  # Maximum 3 monstres visibles
+					break
+
+func _finish_transition():
+	"""Finalise la transition"""
+	print("[CombatManager] 🎉 Finalisation de la transition...")
+	
+	# Ici on peut ajouter des effets sonores, particles, etc.
+	# Pour l'instant, juste un log
+	print("[CombatManager] ✅ Transition combat style Dofus terminée !")
 
 ## Met à jour l'état de combat depuis le serveur
 func update_combat_state(new_combat_data: Dictionary):
@@ -330,7 +595,48 @@ func _end_combat_with_result(result_data: Dictionary):
 	for key in result_data:
 		result[key] = result_data[key]
 	
-	# Masquer l'interface
+	# TRANSITION STYLE DOFUS : Retour au monde
+	_start_exit_combat_transition()
+	
+	# Nettoyer l'état
+	current_combat_state = null
+	current_combat_id = ""
+	pending_actions.clear()
+	
+	combat_ended.emit(result)
+
+func _start_exit_combat_transition():
+	"""Démarre la transition de sortie de combat style Dofus"""
+	print("[CombatManager] 🌟 Démarrage transition sortie combat...")
+	
+	# Créer l'effet de transition
+	_create_exit_transition_effect()
+
+func _create_exit_transition_effect():
+	"""Crée l'effet de transition de sortie"""
+	print("[CombatManager] ✨ Création effet de sortie...")
+	
+	# Créer un overlay noir pour la transition
+	var transition_overlay = ColorRect.new()
+	transition_overlay.color = Color(0, 0, 0, 0)  # Noir transparent
+	transition_overlay.size = get_viewport().size
+	transition_overlay.name = "CombatExitTransition"
+	
+	# Ajouter à la scène
+	get_tree().current_scene.add_child(transition_overlay)
+	
+	# Animation de fondu
+	var tween = create_tween()
+	tween.tween_property(transition_overlay, "color:a", 1.0, 0.3)  # Fondu vers noir
+	tween.tween_callback(_on_exit_transition_mid_point)
+	tween.tween_property(transition_overlay, "color:a", 0.0, 0.3)  # Fondu depuis noir
+	tween.tween_callback(_on_exit_transition_complete.bind(transition_overlay))
+
+func _on_exit_transition_mid_point():
+	"""Appelé au milieu de la transition de sortie"""
+	print("[CombatManager] 🎯 Milieu transition sortie - Restauration monde...")
+	
+	# Masquer l'interface de combat
 	if combat_ui:
 		combat_ui.hide_combat_ui()
 	
@@ -340,12 +646,42 @@ func _end_combat_with_result(result_data: Dictionary):
 	# Nettoyer les effets visuels
 	clear_visual_effects()
 	
-	# Nettoyer l'état
-	current_combat_state = null
-	current_combat_id = ""
-	pending_actions.clear()
+	# Restaurer la carte du monde
+	_restore_world_map()
 	
-	combat_ended.emit(result)
+	# Restaurer les positions des entités
+	_restore_entities_positions()
+
+func _on_exit_transition_complete(transition_overlay: ColorRect):
+	"""Appelé à la fin de la transition de sortie"""
+	print("[CombatManager] ✅ Transition sortie terminée")
+	
+	# Supprimer l'overlay de transition
+	if transition_overlay:
+		transition_overlay.queue_free()
+	
+	print("[CombatManager] 🌍 Retour au monde terminé")
+
+func _restore_world_map():
+	"""Restaure la visibilité de la carte du monde"""
+	print("[CombatManager] 🗺️ Restauration de la carte du monde...")
+	
+	if game_manager and game_manager.current_map:
+		game_manager.current_map.visible = true
+		print("[CombatManager] ✅ Carte restaurée")
+
+func _restore_entities_positions():
+	"""Restaure les positions des entités dans le monde"""
+	print("[CombatManager] 🔄 Restauration positions entités...")
+	
+	# Restaurer la position du joueur (peut être configurée depuis le serveur)
+	if game_manager and game_manager.current_player:
+		# Pour l'instant, on garde la position actuelle
+		# Dans le futur, on pourrait restaurer la position pré-combat
+		print("[CombatManager] ✅ Position joueur maintenue")
+	
+	# Les monstres restent où ils sont pour l'instant
+	print("[CombatManager] ✅ Positions restaurées")
 
 # ================================
 # GESTION DES ACTIONS JOUEUR

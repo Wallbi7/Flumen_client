@@ -10,7 +10,7 @@ signal map_transition_triggered(target_map_id: String, entry_point: Vector2)
 
 ## PROPRIÉTÉS EXPORTÉES (modifiables dans l'éditeur)
 ## =================================================
-@export var speed: float = 200.0  # Vitesse de déplacement en pixels/seconde
+@export var speed: float = 400.0  # Vitesse de déplacement en pixels/seconde
 
 ## RÉFÉRENCES AUX NŒUDS ENFANTS
 ## =============================

@@ -23,12 +23,13 @@ const BEHAVIOR_COLORS = {
 
 ## RÉFÉRENCES AUX NŒUDS ENFANTS
 ## =============================
-@onready var sprite: Sprite2D = $Sprite2D
-@onready var health_bar: ProgressBar = $HealthBar
+@onready var sprite: ColorRect = $ColorRect
+@onready var health_bar: ProgressBar = $HealthBar if has_node("HealthBar") else null
 @onready var interaction_area: Area2D = $Area2D
 
 ## VARIABLES D'ÉTAT
 ## ================
+var monster_id: String = ""            # UUID unique du monstre côté serveur
 var monster_type: String = ""
 var monster_name: String = "Monstre"
 var level: int = 1
@@ -54,6 +55,7 @@ func _ready():
 
 func initialize_from_data(monster_data: Dictionary):
 	"""Initialise le monstre avec les données fournies"""
+	monster_id = monster_data.get("id", "")                   # UUID unique
 	monster_type = monster_data.get("template_id", "")
 	monster_name = monster_data.get("template_id", "Monstre")  # Utiliser template_id comme nom
 	level = monster_data.get("level", 1)

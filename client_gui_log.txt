@@ -1,0 +1,585 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+OpenGL API 3.3.0 Core Profile Context 25.6.1.250522 - Compatibility - Using Device: ATI Technologies Inc. - AMD Radeon RX 6700 XT
+
+[GameManager] === INITIALISATION DU GESTIONNAIRE CENTRAL ===
+[GameManager] Menu contextuel monstre initialisé
+[GameManager] Système de tooltip initialisé
+[GameManager] Système de maps initialisé
+[GameManager] ✅ AuthManager trouvé
+[GameManager] WebSocketManager sera connecté lors de la connexion au serveur
+[GameManager] 🔧 Initialisation du système de combat...
+
+[CombatManager] === INITIALISATION ===
+[VisualEffectsManager] 🎨 Système d'effets visuels initialisé
+[CombatManager] 🎨 Système d'effets visuels initialisé
+[CombatManager] ✅ GameManager trouvé
+[CombatManager] ⚠️ WebSocketManager non trouvé
+[CombatManager] 🔧 Initialisation des systèmes de combat...
+[CombatManager] 🔧 Création de la grille de combat...
+[CombatManager] ✅ Grille ajoutée à la scène principale
+[VisualEffectsManager] 🗺️ Référence grille configurée
+[CombatManager] 🎨 Référence grille configurée pour effets visuels
+[CombatManager] 🔧 Création de l'interface de combat...
+[CombatManager] ✅ Interface ajoutée à la scène principale
+[CombatManager] 🔗 Grille connectée
+[CombatManager] 🔗 Interface connectée
+[CombatManager] ✅ Tous les systèmes de combat initialisés
+[GameManager] ✅ Système de combat initialisé
+[GameManager] Gestionnaire central prêt
+AuthManager: Initializing...
+AuthManager: Using server URL from ServerConfig: http://127.0.0.1:9090/api/v1
+[CombatGrid] === GRILLE COMBAT DOFUS-LIKE INITIALISÉE ===
+[CombatGrid] ✅ Grille Dofus 17x15 centrée - Position: (416.0, 350.0)
+[CombatGrid] Initialisation grille: 17x15
+[CombatGrid] ✅ Grille Dofus 17x15 créée avec 255 cellules et zones de placement
+[CombatUI] === INITIALISATION INTERFACE COMBAT DOFUS-LIKE ===
+[CombatUI] ✅ 6 boutons de sorts initialisés
+[CombatUI] 🙈 Interface de combat masquée
+LoginScene: Initializing...
+LoginScene: Player already authenticated: 
+LoginScene: Validating existing token...
+LoginScene: Token validation response code: 200
+LoginScene: Token is valid, proceeding to game
+LoginScene: Transitioning to character selection scene...
+[CharacterSelection] Demande de liste des personnages
+[GameManager] Lancement de la requête pour les personnages.
+[GameManager] Token trouvé: eyJhbGciOiJIUzI1NiIs...
+[GameManager] Headers utilisés: ["Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTRkN2ZjNTUtNzE3Yy00M2YwLThhNmEtNDFkMTcwMzRiNmMyIiwidXNlcm5hbWUiOiJXYWxsYmk3Iiwic3ViIjoiNTRkN2ZjNTUtNzE3Yy00M2YwLThhNmEtNDFkMTcwMzRiNmMyIiwiZXhwIjoxNzUzMTM1MjQ1LCJpYXQiOjE3NTMwNDg4NDV9.VtQR7yIPq23TQ8ngPjYq9Xd0kQEdnT7HcQt-VZrltvI", "Content-Type: application/json", "User-Agent: Flumen-Client/1.0"]
+[GameManager] URL de requête: http://127.0.0.1:9090/api/v1/characters
+[GameManager] Résultat de la requête HTTP: 0
+[GameManager DEBUG] Réponse reçue - Code: 200
+[GameManager DEBUG] Headers de réponse: ["Date: Mon, 21 Jul 2025 01:24:33 GMT", "Content-Type: application/json", "Content-Length: 3605"]
+[GameManager DEBUG] Corps de la réponse: '[{"id":"5873eb61-0262-4d90-bc27-6a8adafdcd13","user_id":"54d7fc55-717c-43f0-8a6a-41d17034b6c2","name":"Wallbi7","class":"warrior","experience":0,"level":1,"stat_points":0,"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0,"base_stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"computed_stats":{"health":0,"max_health":0,"mana":0,"max_mana":0,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":0,"intelligence":0,"agility":0,"vitality":0,"wisdom":0,"chance":0},"pos_x":758,"pos_y":605,"created_at":"2025-07-02T02:21:13.156861+02:00","updated_at":"2025-07-04T01:52:04.181235+02:00"},{"id":"f93cfbee-2ece-4893-a7e2-30a770001cad","user_id":"54d7fc55-717c-43f0-8a6a-41d17034b6c2","name":"test","class":"archer","experience":0,"level":1,"stat_points":0,"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0,"base_stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"computed_stats":{"health":0,"max_health":0,"mana":0,"max_mana":0,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":0,"intelligence":0,"agility":0,"vitality":0,"wisdom":0,"chance":0},"pos_x":758,"pos_y":605,"created_at":"2025-07-08T17:07:22.679456+02:00","updated_at":"2025-07-08T17:07:22.679456+02:00"},{"id":"6ddb384a-7671-4d36-ac33-06a6bd82e370","user_id":"54d7fc55-717c-43f0-8a6a-41d17034b6c2","name":"aaa","class":"warrior","experience":0,"level":1,"stat_points":0,"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0,"base_stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"stats":{"health":100,"max_health":100,"mana":50,"max_mana":50,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":10,"intelligence":10,"agility":10,"vitality":10,"wisdom":10,"chance":0},"computed_stats":{"health":0,"max_health":0,"mana":0,"max_mana":0,"action_points":0,"max_action_points":0,"movement_points":0,"max_movement_points":0,"strength":0,"intelligence":0,"agility":0,"vitality":0,"wisdom":0,"chance":0},"pos_x":758,"pos_y":605,"created_at":"2025-07-08T19:49:04.112045+02:00","updated_at":"2025-07-08T19:49:04.112045+02:00"}]'
+[GameManager DEBUG] Taille du corps: 3605 bytes
+[GameManager DEBUG] Personnages reçus: [{ "id": "5873eb61-0262-4d90-bc27-6a8adafdcd13", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "Wallbi7", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-02T02:21:13.156861+02:00", "updated_at": "2025-07-04T01:52:04.181235+02:00" }, { "id": "f93cfbee-2ece-4893-a7e2-30a770001cad", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "test", "class": "archer", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T17:07:22.679456+02:00", "updated_at": "2025-07-08T17:07:22.679456+02:00" }, { "id": "6ddb384a-7671-4d36-ac33-06a6bd82e370", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "aaa", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T19:49:04.112045+02:00", "updated_at": "2025-07-08T19:49:04.112045+02:00" }]
+[GameManager] Personnages reçus, demande des classes...
+[GameManager DEBUG] Réponse reçue - Code: 200
+[GameManager DEBUG] Headers de réponse: ["Date: Mon, 21 Jul 2025 01:24:33 GMT", "Content-Type: application/json", "Content-Length: 454"]
+[GameManager DEBUG] Corps de la réponse: '[{"id":"warrior","name":"Guerrier","description":"Un combattant puissant spécialisé dans le corps à corps. Sa force est sans égale.","base_stats":{"vitality":20,"wisdom":5,"strength":15,"intelligence":5,"chance":5,"agility":10}},{"id":"archer","name":"Archer","description":"Un tireur d'élite qui excelle dans le combat à distance. Précis et agile.","base_stats":{"vitality":15,"wisdom":10,"strength":5,"intelligence":5,"chance":15,"agility":15}}]'
+[GameManager DEBUG] Taille du corps: 454 bytes
+[GameManager DEBUG] Classes reçues: [{ "id": "warrior", "name": "Guerrier", "description": "Un combattant puissant spécialisé dans le corps à corps. Sa force est sans égale.", "base_stats": { "vitality": 20.0, "wisdom": 5.0, "strength": 15.0, "intelligence": 5.0, "chance": 5.0, "agility": 10.0 } }, { "id": "archer", "name": "Archer", "description": "Un tireur d\'élite qui excelle dans le combat à distance. Précis et agile.", "base_stats": { "vitality": 15.0, "wisdom": 10.0, "strength": 5.0, "intelligence": 5.0, "chance": 15.0, "agility": 15.0 } }]
+[GameManager DEBUG] Données combinées prêtes à être émises: { "success": true, "characters": [{ "id": "5873eb61-0262-4d90-bc27-6a8adafdcd13", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "Wallbi7", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-02T02:21:13.156861+02:00", "updated_at": "2025-07-04T01:52:04.181235+02:00" }, { "id": "f93cfbee-2ece-4893-a7e2-30a770001cad", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "test", "class": "archer", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T17:07:22.679456+02:00", "updated_at": "2025-07-08T17:07:22.679456+02:00" }, { "id": "6ddb384a-7671-4d36-ac33-06a6bd82e370", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "aaa", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T19:49:04.112045+02:00", "updated_at": "2025-07-08T19:49:04.112045+02:00" }], "classes": [{ "id": "warrior", "name": "Guerrier", "description": "Un combattant puissant spécialisé dans le corps à corps. Sa force est sans égale.", "base_stats": { "vitality": 20.0, "wisdom": 5.0, "strength": 15.0, "intelligence": 5.0, "chance": 5.0, "agility": 10.0 } }, { "id": "archer", "name": "Archer", "description": "Un tireur d\'élite qui excelle dans le combat à distance. Précis et agile.", "base_stats": { "vitality": 15.0, "wisdom": 10.0, "strength": 5.0, "intelligence": 5.0, "chance": 15.0, "agility": 15.0 } }] }
+[CharacterSelection DEBUG] Données reçues du GameManager: { "success": true, "characters": [{ "id": "5873eb61-0262-4d90-bc27-6a8adafdcd13", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "Wallbi7", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-02T02:21:13.156861+02:00", "updated_at": "2025-07-04T01:52:04.181235+02:00" }, { "id": "f93cfbee-2ece-4893-a7e2-30a770001cad", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "test", "class": "archer", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T17:07:22.679456+02:00", "updated_at": "2025-07-08T17:07:22.679456+02:00" }, { "id": "6ddb384a-7671-4d36-ac33-06a6bd82e370", "user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2", "name": "aaa", "class": "warrior", "experience": 0.0, "level": 1.0, "stat_points": 0.0, "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0, "base_stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "stats": { "health": 100.0, "max_health": 100.0, "mana": 50.0, "max_mana": 50.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 10.0, "intelligence": 10.0, "agility": 10.0, "vitality": 10.0, "wisdom": 10.0, "chance": 0.0 }, "computed_stats": { "health": 0.0, "max_health": 0.0, "mana": 0.0, "max_mana": 0.0, "action_points": 0.0, "max_action_points": 0.0, "movement_points": 0.0, "max_movement_points": 0.0, "strength": 0.0, "intelligence": 0.0, "agility": 0.0, "vitality": 0.0, "wisdom": 0.0, "chance": 0.0 }, "pos_x": 758.0, "pos_y": 605.0, "created_at": "2025-07-08T19:49:04.112045+02:00", "updated_at": "2025-07-08T19:49:04.112045+02:00" }], "classes": [{ "id": "warrior", "name": "Guerrier", "description": "Un combattant puissant spécialisé dans le corps à corps. Sa force est sans égale.", "base_stats": { "vitality": 20.0, "wisdom": 5.0, "strength": 15.0, "intelligence": 5.0, "chance": 5.0, "agility": 10.0 } }, { "id": "archer", "name": "Archer", "description": "Un tireur d\'élite qui excelle dans le combat à distance. Précis et agile.", "base_stats": { "vitality": 15.0, "wisdom": 10.0, "strength": 5.0, "intelligence": 5.0, "chance": 15.0, "agility": 15.0 } }] }
+[CharacterSelection DEBUG] Classes extraites: [{ "id": "warrior", "name": "Guerrier", "description": "Un combattant puissant spécialisé dans le corps à corps. Sa force est sans égale.", "base_stats": { "vitality": 20.0, "wisdom": 5.0, "strength": 15.0, "intelligence": 5.0, "chance": 5.0, "agility": 10.0 } }, { "id": "archer", "name": "Archer", "description": "Un tireur d\'élite qui excelle dans le combat à distance. Précis et agile.", "base_stats": { "vitality": 15.0, "wisdom": 10.0, "strength": 5.0, "intelligence": 5.0, "chance": 15.0, "agility": 15.0 } }]
+[CharacterSelection DEBUG] Structure du personnage sélectionné:
+{
+	"action_points": 0.0,
+	"agility": 10.0,
+	"base_stats": {
+		"action_points": 0.0,
+		"agility": 10.0,
+		"chance": 0.0,
+		"health": 100.0,
+		"intelligence": 10.0,
+		"mana": 50.0,
+		"max_action_points": 0.0,
+		"max_health": 100.0,
+		"max_mana": 50.0,
+		"max_movement_points": 0.0,
+		"movement_points": 0.0,
+		"strength": 10.0,
+		"vitality": 10.0,
+		"wisdom": 10.0
+	},
+	"chance": 0.0,
+	"class": "warrior",
+	"computed_stats": {
+		"action_points": 0.0,
+		"agility": 0.0,
+		"chance": 0.0,
+		"health": 0.0,
+		"intelligence": 0.0,
+		"mana": 0.0,
+		"max_action_points": 0.0,
+		"max_health": 0.0,
+		"max_mana": 0.0,
+		"max_movement_points": 0.0,
+		"movement_points": 0.0,
+		"strength": 0.0,
+		"vitality": 0.0,
+		"wisdom": 0.0
+	},
+	"created_at": "2025-07-02T02:21:13.156861+02:00",
+	"experience": 0.0,
+	"health": 100.0,
+	"id": "5873eb61-0262-4d90-bc27-6a8adafdcd13",
+	"intelligence": 10.0,
+	"level": 1.0,
+	"mana": 50.0,
+	"max_action_points": 0.0,
+	"max_health": 100.0,
+	"max_mana": 50.0,
+	"max_movement_points": 0.0,
+	"movement_points": 0.0,
+	"name": "Wallbi7",
+	"pos_x": 758.0,
+	"pos_y": 605.0,
+	"stat_points": 0.0,
+	"stats": {
+		"action_points": 0.0,
+		"agility": 10.0,
+		"chance": 0.0,
+		"health": 100.0,
+		"intelligence": 10.0,
+		"mana": 50.0,
+		"max_action_points": 0.0,
+		"max_health": 100.0,
+		"max_mana": 50.0,
+		"max_movement_points": 0.0,
+		"movement_points": 0.0,
+		"strength": 10.0,
+		"vitality": 10.0,
+		"wisdom": 10.0
+	},
+	"strength": 10.0,
+	"updated_at": "2025-07-04T01:52:04.181235+02:00",
+	"user_id": "54d7fc55-717c-43f0-8a6a-41d17034b6c2",
+	"vitality": 10.0,
+	"wisdom": 10.0
+}
+[CharacterSelection DEBUG] Champ 'stats' trouvé
+[WebSocketManager] _ready() appelé.
+[WebSocketManager] Using WebSocket URL: ws://127.0.0.1:9090/ws/game
+[WebSocketManager] Mécanisme de retry initialisé (interval: 3.0s)
+[StatsPanel] === INITIALISATION PANEL STATS ===
+[StatsPanel] Configuration des connexions...
+[StatsPanel] ✅ validate_button connecté
+[StatsPanel] ✅ reset_button connecté
+[StatsPanel] ✅ close_button connecté
+[StatsPanel] Panel de stats initialisé
+[HUD] === INITIALISATION HUD (Style Dofus) ===
+[HUD] Configuration du panel de stats...
+[HUD] Chargement des données personnage...
+[HUD] ⚠️ Aucune donnée personnage trouvée dans le JWT
+[HUD] HUD initialisé avec succès.
+[Main] === INITIALISATION SCÈNE PRINCIPALE ===
+[Main] ✅ Joueur authentifié: 
+[Main] Lancement de la connexion au serveur de jeu avec retry automatique...
+[GameManager] === CONNEXION AU SERVEUR DE JEU ===
+[GameManager] ✅ WebSocketManager trouvé dans main.tscn
+[GameManager] === CONNEXION AUX SIGNAUX WEBSOCKET ===
+[GameManager] ✅ Signal map_changed connecté
+[GameManager] ✅ Signal connected connecté
+[GameManager] ✅ Signal disconnected connecté
+[GameManager] ✅ Signal connection_error connecté
+[GameManager] ✅ Signal player_joined connecté
+[GameManager] ✅ Signal player_left connecté
+[GameManager] ✅ Signal player_moved connecté
+[GameManager] ✅ Signal players_list_received connecté
+[GameManager] ✅ Signal combat_started connecté
+ERROR: In Object of type 'Node': Attempt to connect nonexistent signal 'monsters_data' to callable 'Node(GameManager.gd)::_on_monsters_data_received'.
+   at: connect (core/object/object.cpp:1439)
+[GameManager] ✅ Signal monsters_data connecté
+[GameManager] Tous les signaux WebSocket connectés
+[GameManager] ✅ Token trouvé, lancement de la connexion avec retry automatique...
+[WebSocketManager] Connexion avec retry - Enabled: true, Interval: 3.0s, Max: 0
+[WebSocketManager] Tentative de connexion WebSocket...
+[WebSocketManager] Connexion à l'URL: ws://127.0.0.1:9090/ws/game?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTRkN2ZjNTUtNzE3Yy00M2YwLThhNmEtNDFkMTcwMzRiNmMyIiwidXNlcm5hbWUiOiJXYWxsYmk3IiwiY2hhcmFjdGVyX2lkIjoiNTg3M2ViNjEtMDI2Mi00ZDkwLWJjMjctNmE4YWRhZmRjZDEzIiwiY2hhcmFjdGVyX2NsYXNzIjoid2FycmlvciIsInBvc194Ijo3NTgsInBvc195Ijo2MDUsInN1YiI6IjU0ZDdmYzU1LTcxN2MtNDNmMC04YTZhLTQxZDE3MDM0YjZjMiIsImV4cCI6MTc1MzE0NzQ3NiwiaWF0IjoxNzUzMDYxMDc2fQ.T_DgAyvAvA_qVK5z15ljPAsLhy0SK-gj9vRYD4eKhOQ
+[WebSocketManager] Token (premiers 20 chars): eyJhbGciOiJIUzI1NiIs...
+[WebSocketManager] connect_to_url() appelé avec succès, attente de la connexion...
+[Main] Fallback hors ligne programmé dans 15 secondes si aucune connexion réussie
+[WebSocketManager] ✅ Connecté avec succès!
+[Main] === CONNEXION WEBSOCKET RÉUSSIE ===
+[WebSocketManager] Mécanisme de retry arrêté
+[Main] ✅ Connecté au serveur de jeu avec succès!
+[Main] Données JWT - Map: map_0_0 Position: (758.0, 605.0)
+[Main] === CONFIGURATION CAMÉRA ADAPTATIVE ===
+[Main] Taille écran: (1920.0, 1080.0)
+[Main] Taille map: (1920.0, 1077.002)
+[Main] Zoom calculé: 1.0
+[Main] Caméra configurée - Centre: (960.0, 538.5011) Zoom: 1.0
+[Main] Chargement de la map via GameManager...
+[GameManager] === CHARGEMENT DE MAP ===
+[GameManager] Map: map_0_0 Spawn: (758.0, 605.0)
+[GameManager] === NETTOYAGE DE L'ÉTAT ACTUEL ===
+[GameManager] Suppression des monstres
+[GameManager] Nettoyage terminé
+[GameManager] Chemin de la map: res://game/maps/map_0_0/map_0_0.tscn
+[GameManager] ✅ Fichier de map trouvé, chargement...
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[GameManager] ✅ Map chargée avec succès: map_0_0
+[GameManager] === GÉNÉRATION DES TRANSITIONS AUTOMATIQUES ===
+[MapTransitionGenerator] Génération des transitions pour: map_0_0
+[MapTransitionGenerator] left -> map_-1_0
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[MapTransitionGenerator] ✅ Transition left créée vers map_-1_0
+[MapTransitionGenerator] right -> map_1_0
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[MapTransitionGenerator] ✅ Transition right créée vers map_1_0
+[MapTransitionGenerator] up -> map_0_1
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[MapTransitionGenerator] ✅ Transition up créée vers map_0_1
+[MapTransitionGenerator] down -> map_0_-1
+[TransitionArea] ws_manager récupéré depuis GameManager : WebSocketManager:<Node#104975043495>
+[MapTransitionGenerator] ✅ Transition down créée vers map_0_-1
+[GameManager] === CRÉATION DU JOUEUR PRINCIPAL ===
+[Player] === INITIALISATION DU JOUEUR ===
+[Player] ✅ GameManager trouvé
+[Player] Joueur initialisé à la position: (758.0, 605.0)
+[GameManager] Joueur instancié à la position: (758.0, 605.0)
+[GameManager] ⚠️ Nom d'utilisateur vide
+[GameManager] État du jeu: IN_GAME
+[GameManager] Signaux du joueur connectés
+[GameManager] ✅ Joueur principal créé avec succès
+[GameManager] === CHARGEMENT DES MONSTRES ===
+[GameManager] Map: map_0_0
+[WebSocketManager] Message envoyé: {"data":{"map_id":"map_0_0"},"type":"request_monsters"}
+[GameManager] ✅ Requête monstres envoyée via WebSocket pour: map_0_0
+[GameManager] 🧪 Ajout de monstres de test supplémentaires...
+[GameManager] 🧪 Création de 3 monstres de test...
+[Monster] Monstre initialisé: tofu (tofu) Niv.1
+[Monster] Initialisation du monstre: tofu
+[Monster] ✅ Script spécialisé attaché à l'Area2D pour meilleure détection
+[Monster] ✅ CollisionShape2D trouvée avec shape: CircleShape2D
+[Monster] 🔧 Configuration Area2D: input_pickable=true priority=10 monitoring=true
+[Monster] Zone d'interaction configurée pour: tofu - Utilisation Area2D existante
+[GameManager] 🔍 DEBUG - Signaux disponibles sur tofu:
+  - monster_clicked
+  - monster_right_clicked
+  - monster_hovered
+  - monster_died
+  - input_event
+  - mouse_entered
+  - mouse_exited
+  - mouse_shape_entered
+  - mouse_shape_exited
+  - draw
+  - visibility_changed
+  - hidden
+  - item_rect_changed
+  - ready
+  - renamed
+  - tree_entered
+  - tree_exiting
+  - tree_exited
+  - child_entered_tree
+  - child_exiting_tree
+  - child_order_changed
+  - replacing_by
+  - editor_description_changed
+  - editor_state_changed
+  - script_changed
+  - property_list_changed
+[GameManager] ✅ Signal 'monster_clicked' connecté.
+[GameManager] ✅ Signal 'monster_right_clicked' connecté.
+[GameManager] ✅ Signal 'monster_hovered' connecté.
+[GameManager] ✅ Signal 'monster_died' connecté.
+[GameManager] ✅ Monstre créé: tofu (ID: test_tofu_1)
+[Monster] Monstre initialisé: bouftou (bouftou) Niv.1
+[Monster] Initialisation du monstre: bouftou
+[Monster] ✅ Script spécialisé attaché à l'Area2D pour meilleure détection
+[Monster] ✅ CollisionShape2D trouvée avec shape: CircleShape2D
+[Monster] 🔧 Configuration Area2D: input_pickable=true priority=10 monitoring=true
+[Monster] Zone d'interaction configurée pour: bouftou - Utilisation Area2D existante
+[GameManager] 🔍 DEBUG - Signaux disponibles sur bouftou:
+  - monster_clicked
+  - monster_right_clicked
+  - monster_hovered
+  - monster_died
+  - input_event
+  - mouse_entered
+  - mouse_exited
+  - mouse_shape_entered
+  - mouse_shape_exited
+  - draw
+  - visibility_changed
+  - hidden
+  - item_rect_changed
+  - ready
+  - renamed
+  - tree_entered
+  - tree_exiting
+  - tree_exited
+  - child_entered_tree
+  - child_exiting_tree
+  - child_order_changed
+  - replacing_by
+  - editor_description_changed
+  - editor_state_changed
+  - script_changed
+  - property_list_changed
+[GameManager] ✅ Signal 'monster_clicked' connecté.
+[GameManager] ✅ Signal 'monster_right_clicked' connecté.
+[GameManager] ✅ Signal 'monster_hovered' connecté.
+[GameManager] ✅ Signal 'monster_died' connecté.
+[GameManager] ✅ Monstre créé: bouftou (ID: test_bouftou_1)
+[Monster] Monstre initialisé: larve (larve) Niv.2
+[Monster] Initialisation du monstre: larve
+[Monster] ✅ Script spécialisé attaché à l'Area2D pour meilleure détection
+[Monster] ✅ CollisionShape2D trouvée avec shape: CircleShape2D
+[Monster] 🔧 Configuration Area2D: input_pickable=true priority=10 monitoring=true
+[Monster] Zone d'interaction configurée pour: larve - Utilisation Area2D existante
+[GameManager] 🔍 DEBUG - Signaux disponibles sur larve:
+  - monster_clicked
+  - monster_right_clicked
+  - monster_hovered
+  - monster_died
+  - input_event
+  - mouse_entered
+  - mouse_exited
+  - mouse_shape_entered
+  - mouse_shape_exited
+  - draw
+  - visibility_changed
+  - hidden
+  - item_rect_changed
+  - ready
+  - renamed
+  - tree_entered
+  - tree_exiting
+  - tree_exited
+  - child_entered_tree
+  - child_exiting_tree
+  - child_order_changed
+  - replacing_by
+  - editor_description_changed
+  - editor_state_changed
+  - script_changed
+  - property_list_changed
+[GameManager] ✅ Signal 'monster_clicked' connecté.
+[GameManager] ✅ Signal 'monster_right_clicked' connecté.
+[GameManager] ✅ Signal 'monster_hovered' connecté.
+[GameManager] ✅ Signal 'monster_died' connecté.
+[GameManager] ✅ Monstre créé: larve (ID: test_larve_1)
+[Main] Initialisation du HUD...
+[Main] HUD activé avec succès - Position: (660.0, 970.0) Taille: (600.0, 110.0)
+[Main] Initialisation terminée avec succès!
+[GameManager] ✅ WebSocket connecté!
+[WebSocketManager] Message reçu: {"type":"players_list","data":null}
+[GameManager] === LISTE DES JOUEURS REÇUE ===
+[GameManager] ⚠️ Liste des joueurs null, aucun joueur à afficher
+[Player] Clic droit détecté à la position: (1853.712, 30.84588)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (758.0, 605.0)
+[Player] Position cible: (1853.712, 30.84588)
+[Player] Distance à parcourir: 1237.02746582031 pixels
+[Player] Clic droit détecté à la position: (1874.229, 24.5347)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (758.0, 605.0)
+[Player] Position cible: (1874.229, 24.5347)
+[Player] Distance à parcourir: 1258.13684082031 pixels
+[Player] Clic droit détecté à la position: (1920.789, 15.06794)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (758.0, 605.0)
+[Player] Position cible: (1920.789, 15.06794)
+[Player] Distance à parcourir: 1303.87841796875 pixels
+[Player] Clic droit détecté à la position: (1929.47, 13.49014)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (758.0, 605.0)
+[Player] Position cible: (1929.47, 13.49014)
+[Player] Distance à parcourir: 1312.3359375 pixels
+[Player] Clic droit détecté à la position: (1169.519, 436.339)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1049.601, 457.7613)
+[Player] Position cible: (1169.519, 436.339)
+[Player] Distance à parcourir: 121.816268920898 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 1169.51928710938, 436.338989257813
+[GameManager] Position envoyée au serveur: (1169.51928710938, 436.338989257813)
+[Player] Signal player_moved émis pour synchronisation
+[Player] Clic droit détecté à la position: (1052.725, 471.0505)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1169.519, 436.339)
+[Player] Position cible: (1052.725, 471.0505)
+[Player] Distance à parcourir: 121.843223571777 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 1052.72509765625, 471.050476074219
+[GameManager] Position envoyée au serveur: (1052.72509765625, 471.050476074219)
+[Player] Signal player_moved émis pour synchronisation
+[GameManager] 👁️ Survol monstre: larve
+[Player] Clic droit détecté à la position: (901.2085, 400.0497)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1052.725, 471.0505)
+[Player] Position cible: (901.2085, 400.0497)
+[Player] Distance à parcourir: 167.327178955078 pixels
+[MonsterArea] 📡 Backup input_event - Bouton: 2
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur larve - Bouton: 2 Pressed: true Position: (901.2085, 401.5486)
+[Monster] ✅ CLIC DÉTECTÉ sur larve - Bouton: 2
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: larve
+[GameManager] 🎯 Clic droit sur monstre: larve
+[GameManager] 🏃 Déplacement vers le monstre: larve
+[GameManager] 🏃 Style Dofus : Déplacement vers larve
+[GameManager] 🎯 Déplacement vers position: (850.0, 400.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1052.725, 471.0505)
+[Player] Position cible: (850.0, 400.0)
+[Player] Distance à parcourir: 214.815353393555 pixels
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur larve - Bouton: 2 Pressed: false Position: (900.4193, 401.5486)
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: larve
+[GameManager] 🎯 Clic droit sur monstre: larve
+[GameManager] 🏃 Déplacement vers le monstre: larve
+[GameManager] 🏃 Style Dofus : Déplacement vers larve
+[GameManager] 🎯 Déplacement vers position: (850.0, 400.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1021.268, 460.0254)
+[Player] Position cible: (850.0, 400.0)
+[Player] Distance à parcourir: 181.481826782227 pixels
+[GameManager] 👁️ Fin survol monstre: larve
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 850.0, 400.0
+[GameManager] Position envoyée au serveur: (850.0, 400.0)
+[GameManager] 🎯 Joueur arrivé à destination, lancement du combat
+[GameManager] ⚔️ Combat avec: larve
+[GameManager] ⚔️ Lancement du combat avec: larve
+[GameManager] ⚔️ Demande de lancement de combat avec le monstre: larve
+[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: test_larve_1
+[WebSocketManager] Message envoyé: {"data":{"monster_id":"test_larve_1"},"timestamp":1753061081.972,"type":"initiate_combat"}
+[GameManager] 📤 Message WebSocket envoyé: initiate_combat avec données: { "monster_id": "test_larve_1" }
+[Player] Signal player_moved émis pour synchronisation
+[Player] Clic droit détecté à la position: (1000.641, 392.1608)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (850.0, 400.0)
+[Player] Position cible: (1000.641, 392.1608)
+[Player] Distance à parcourir: 150.845138549805 pixels
+[GameManager] 👁️ Survol monstre: larve
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 1000.64129638672, 392.160766601563
+[GameManager] Position envoyée au serveur: (1000.64129638672, 392.160766601563)
+[Player] Signal player_moved émis pour synchronisation
+[Player] Clic droit détecté à la position: (918.5698, 396.1053)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1000.641, 392.1608)
+[Player] Position cible: (918.5698, 396.1053)
+[Player] Distance à parcourir: 82.1662673950195 pixels
+[MonsterArea] 📡 Backup input_event - Bouton: 2
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur larve - Bouton: 2 Pressed: true Position: (918.5698, 397.6041)
+[Monster] ✅ CLIC DÉTECTÉ sur larve - Bouton: 2
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: larve
+[GameManager] 🎯 Clic droit sur monstre: larve
+[GameManager] 🏃 Déplacement vers le monstre: larve
+[GameManager] 🏃 Style Dofus : Déplacement vers larve
+[GameManager] 🎯 Déplacement vers position: (850.0, 400.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1000.641, 392.1608)
+[Player] Position cible: (850.0, 400.0)
+[Player] Distance à parcourir: 150.845138549805 pixels
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur larve - Bouton: 2 Pressed: false Position: (918.5698, 397.6041)
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: larve
+[GameManager] 🎯 Clic droit sur monstre: larve
+[GameManager] 🏃 Déplacement vers le monstre: larve
+[GameManager] 🏃 Style Dofus : Déplacement vers larve
+[GameManager] 🎯 Déplacement vers position: (850.0, 400.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (987.326, 392.8537)
+[Player] Position cible: (850.0, 400.0)
+[Player] Distance à parcourir: 137.511810302734 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 850.0, 400.0
+[GameManager] Position envoyée au serveur: (850.0, 400.0)
+[GameManager] 🎯 Joueur arrivé à destination, lancement du combat
+[GameManager] ⚔️ Combat avec: larve
+[GameManager] ⚔️ Lancement du combat avec: larve
+[GameManager] ⚔️ Demande de lancement de combat avec le monstre: larve
+[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: test_larve_1
+[WebSocketManager] Message envoyé: {"data":{"monster_id":"test_larve_1"},"timestamp":1753061083.821,"type":"initiate_combat"}
+[GameManager] 📤 Message WebSocket envoyé: initiate_combat avec données: { "monster_id": "test_larve_1" }
+[Player] Signal player_moved émis pour synchronisation
+[GameManager] 👁️ Fin survol monstre: larve
+[GameManager] 👁️ Survol monstre: larve
+[GameManager] 👁️ Fin survol monstre: larve
+[GameManager] 👁️ Survol monstre: tofu
+[GameManager] 👁️ Fin survol monstre: tofu
+[GameManager] 👁️ Survol monstre: tofu
+[GameManager] 👁️ Fin survol monstre: tofu
+[GameManager] 👁️ Survol monstre: tofu
+[Player] Clic droit détecté à la position: (823.0827, 505.7619)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (850.0, 400.0)
+[Player] Position cible: (823.0827, 505.7619)
+[Player] Distance à parcourir: 109.133529663086 pixels
+[MonsterArea] 📡 Backup input_event - Bouton: 2
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur tofu - Bouton: 2 Pressed: true Position: (823.0827, 507.2608)
+[Monster] ✅ CLIC DÉTECTÉ sur tofu - Bouton: 2
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: tofu
+[GameManager] 🎯 Clic droit sur monstre: tofu
+[GameManager] 🏃 Déplacement vers le monstre: tofu
+[GameManager] 🏃 Style Dofus : Déplacement vers tofu
+[GameManager] 🎯 Déplacement vers position: (750.0, 500.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (850.0, 400.0)
+[Player] Position cible: (750.0, 500.0)
+[Player] Distance à parcourir: 141.421356201172 pixels
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur tofu - Bouton: 2 Pressed: false Position: (823.0827, 507.2608)
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: tofu
+[GameManager] 🎯 Clic droit sur monstre: tofu
+[GameManager] 🏃 Déplacement vers le monstre: tofu
+[GameManager] 🏃 Style Dofus : Déplacement vers tofu
+[GameManager] 🎯 Déplacement vers position: (750.0, 500.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (826.4297, 423.5703)
+[Player] Position cible: (750.0, 500.0)
+[Player] Distance à parcourir: 108.087982177734 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 750.0, 500.0
+[GameManager] Position envoyée au serveur: (750.0, 500.0)
+[GameManager] 🎯 Joueur arrivé à destination, lancement du combat
+[GameManager] ⚔️ Combat avec: tofu
+[GameManager] ⚔️ Lancement du combat avec: tofu
+[GameManager] ⚔️ Demande de lancement de combat avec le monstre: tofu
+[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: test_tofu_1
+[WebSocketManager] Message envoyé: {"data":{"monster_id":"test_tofu_1"},"timestamp":1753061086.317,"type":"initiate_combat"}
+[GameManager] 📤 Message WebSocket envoyé: initiate_combat avec données: { "monster_id": "test_tofu_1" }
+[Player] Signal player_moved émis pour synchronisation
+[GameManager] 👁️ Fin survol monstre: tofu
+[GameManager] 👁️ Survol monstre: bouftou
+[Player] Clic droit détecté à la position: (1111.911, 600.4296)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (750.0, 500.0)
+[Player] Position cible: (1111.911, 600.4296)
+[Player] Distance à parcourir: 375.587463378906 pixels
+[MonsterArea] 📡 Backup input_event - Bouton: 2
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur bouftou - Bouton: 2 Pressed: true Position: (1111.911, 601.9285)
+[Monster] ✅ CLIC DÉTECTÉ sur bouftou - Bouton: 2
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: bouftou
+[GameManager] 🎯 Clic droit sur monstre: bouftou
+[GameManager] 🏃 Déplacement vers le monstre: bouftou
+[GameManager] 🏃 Style Dofus : Déplacement vers bouftou
+[GameManager] 🎯 Déplacement vers position: (1050.0, 600.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (750.0, 500.0)
+[Player] Position cible: (1050.0, 600.0)
+[Player] Distance à parcourir: 316.227752685547 pixels
+[Monster] 🖱️ ÉVÉNEMENT CLIC sur bouftou - Bouton: 2 Pressed: false Position: (1111.911, 601.9285)
+[Monster] 🔥 ÉMISSION SIGNAL monster_right_clicked pour: bouftou
+[GameManager] 🎯 Clic droit sur monstre: bouftou
+[GameManager] 🏃 Déplacement vers le monstre: bouftou
+[GameManager] 🏃 Style Dofus : Déplacement vers bouftou
+[GameManager] 🎯 Déplacement vers position: (1050.0, 600.0)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (768.9738, 506.3246)
+[Player] Position cible: (1050.0, 600.0)
+[Player] Distance à parcourir: 296.227661132813 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 1050.0, 600.0
+[GameManager] Position envoyée au serveur: (1050.0, 600.0)
+[GameManager] 🎯 Joueur arrivé à destination, lancement du combat
+[GameManager] ⚔️ Combat avec: bouftou
+[GameManager] ⚔️ Lancement du combat avec: bouftou
+[GameManager] ⚔️ Demande de lancement de combat avec le monstre: bouftou
+[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: test_bouftou_1
+[WebSocketManager] Message envoyé: {"data":{"monster_id":"test_bouftou_1"},"timestamp":1753061088.151,"type":"initiate_combat"}
+[GameManager] 📤 Message WebSocket envoyé: initiate_combat avec données: { "monster_id": "test_bouftou_1" }
+[Player] Signal player_moved émis pour synchronisation
+[GameManager] 👁️ Fin survol monstre: bouftou
+[Player] Clic droit détecté à la position: (952.5032, 642.2411)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (1050.0, 600.0)
+[Player] Position cible: (952.5032, 642.2411)
+[Player] Distance à parcourir: 106.254135131836 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 952.503173828125, 642.241088867188
+[GameManager] Position envoyée au serveur: (952.503173828125, 642.241088867188)
+[Player] Signal player_moved émis pour synchronisation
+[Player] Clic droit détecté à la position: (1069.297, 517.5954)
+[Player] === NOUVEAU DÉPLACEMENT ===
+[Player] Position actuelle: (952.5032, 642.2411)
+[Player] Position cible: (1069.297, 517.5954)
+[Player] Distance à parcourir: 170.814025878906 pixels
+[Player] === MOUVEMENT TERMINÉ ===
+[WebSocketManager] Position envoyée: 1069.29736328125, 517.595397949219
+[GameManager] Position envoyée au serveur: (1069.29736328125, 517.595397949219)
+[Player] Signal player_moved émis pour synchronisation
+[VisualEffectsManager] 🧹 Tous les effets visuels nettoyés
