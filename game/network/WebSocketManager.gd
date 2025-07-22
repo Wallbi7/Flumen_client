@@ -188,8 +188,6 @@ func _process(_delta):
 				_schedule_retry_if_enabled()
 
 func _on_message_received(message: String):
-	print("[WebSocketManager] Message reçu: ", message)
-	
 	# Parser le message JSON
 	var json = JSON.new()
 	if json.parse(message) != OK:

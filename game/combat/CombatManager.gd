@@ -310,9 +310,18 @@ func _show_placement_grid():
 	"""Affiche la grille de combat avec les zones de placement bleues et rouges"""
 	if combat_grid:
 		combat_grid.show_grid()
-		# Forcer l'affichage des zones de placement
+		# Forcer l'affichage des zones de placement APRÈS que la grille soit visible
+		print("[CombatManager] 🎯 Affichage grille et création zones de placement...")
 		combat_grid._create_default_dofus_placement_zones()
-		print("[CombatManager] ✅ Grille de placement affichée avec zones bleu/rouge")
+		
+		# DOUBLE VÉRIFICATION: Re-forcer l'affichage si nécessaire
+		await get_tree().process_frame  # Attendre une frame pour que les nodes soient prêts
+		combat_grid._generate_visual_grid()  # Régénérer encore une fois pour être sûr
+		
+		# TRIPLE VÉRIFICATION: Marquer que les zones ne doivent pas être écrasées
+		combat_grid._preserve_local_placement_zones()
+		
+		print("[CombatManager] ✅ Grille de placement affichée avec zones bleu/rouge FORCÉES et PROTÉGÉES")
 
 ## Affiche l'interface spécifique à la phase de placement
 func _show_placement_interface():
@@ -364,14 +373,18 @@ func _place_monsters_only():
 	# Placer les monstres dans les zones BLEUES (côté gauche) de manière aléatoire
 	var available_blue_positions: Array[Vector2i] = []
 	
-	# Collecter toutes les positions de la zone bleue (4 premières colonnes)
+	# Collecter toutes les positions de la zone bleue (6 premières colonnes maintenant)
+	var enemy_columns = 6  # Correspond au nouveau système étendu
 	for y in range(grid_height):
-		for x in range(0, min(4, grid_width)):
+		for x in range(0, min(enemy_columns, grid_width)):
 			var pos = Vector2i(x, y)
 			if combat_grid.is_valid_grid_position(pos):
-				available_blue_positions.append(pos)
+				# Vérifier que c'est bien une zone bleue libre
+				var cell_data = combat_grid.get_cell_data(pos)
+				if cell_data.get("placement_zone", "") == "enemy" and cell_data.get("occupied_by", "") == "":
+					available_blue_positions.append(pos)
 	
-	print("[CombatManager] 🎯 %d positions bleues disponibles pour les monstres" % available_blue_positions.size())
+	print("[CombatManager] 🎯 %d positions bleues disponibles pour les monstres (zone étendue)" % available_blue_positions.size())
 	
 	# Mélanger les positions pour un placement aléatoire
 	available_blue_positions.shuffle()
@@ -381,14 +394,9 @@ func _place_monsters_only():
 		if monster_count >= available_blue_positions.size():
 			break
 			
-		# Utiliser la position du serveur si disponible, sinon position aléatoire
-		var grid_pos: Vector2i
-		if combatant.pos_x >= 0 and combatant.pos_y >= 0:
-			grid_pos = Vector2i(combatant.pos_x, combatant.pos_y)
-			print("[CombatManager] 📍 Utilisation position serveur pour %s: %s" % [combatant.name, grid_pos])
-		else:
-			grid_pos = available_blue_positions[monster_count]
-			print("[CombatManager] 🎲 Position aléatoire pour %s: %s" % [combatant.name, grid_pos])
+		# FORCER le placement dans les zones bleues (ignorer position serveur)
+		var grid_pos: Vector2i = available_blue_positions[monster_count]
+		print("[CombatManager] 🔵 Placement forcé en zone bleue pour %s: %s" % [combatant.name, grid_pos])
 		
 		# Créer ou récupérer la représentation visuelle du monstre
 		var monster_visual = _create_monster_visual_from_combatant(combatant)
@@ -400,9 +408,11 @@ func _place_monsters_only():
 		var world_pos = combat_grid.grid_to_screen(grid_pos) + combat_grid.global_position
 		monster_visual.global_position = world_pos
 		
-		# S'assurer que le monstre est visible
+		# S'assurer que le monstre est visible et au premier plan
 		monster_visual.visible = true
-		monster_visual.z_index = 100
+		monster_visual.z_index = 1000  # Premier plan absolu (même niveau que joueur)
+		
+		print("[CombatManager] 🎭 Monstre placé au premier plan - z_index: 1000")
 		
 		# Marquer la cellule comme occupée
 		combat_grid.set_cell_occupied(grid_pos, str(combatant.character_id))
@@ -410,9 +420,6 @@ func _place_monsters_only():
 		
 		print("[CombatManager] ✅ Monstre '%s' placé: Grille%s -> Monde%s" % [combatant.name, grid_pos, world_pos])
 		monster_count += 1
-		
-		if monster_count >= 3:  # Maximum 3 monstres
-			break
 	
 	print("[CombatManager] ✅ Placement terminé: %d monstres placés" % monster_count)
 
@@ -426,6 +433,20 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 			var existing_monster = game_manager.monsters[monster_id]
 			if existing_monster and existing_monster.monster_name == combatant.name:
 				print("[CombatManager] 🔄 Réutilisation du monstre existant: %s" % combatant.name)
+				
+				# CORRECTION DU BUG: Re-parenter le monstre vers la scène de combat
+				var combat_parent = combat_grid.get_parent()
+				if combat_parent and existing_monster.get_parent() != combat_parent:
+					# Détacher du parent actuel (la map masquée)
+					var old_parent = existing_monster.get_parent()
+					if old_parent:
+						old_parent.remove_child(existing_monster)
+						print("[CombatManager] 🔄 Monstre détaché de: %s" % old_parent.name)
+					
+					# Rattacher au parent de combat visible
+					combat_parent.add_child(existing_monster)
+					print("[CombatManager] ✅ Monstre re-parenté vers la scène de combat visible")
+				
 				return existing_monster
 	
 	# Créer un nouveau nœud monstre simple si nécessaire
@@ -467,6 +488,9 @@ func confirm_placement():
 	if not _is_player_placed_correctly():
 		print("[CombatManager] ❌ Joueur mal placé - doit être dans la zone rouge")
 		return
+	
+	# NOUVEAU: Notifier le serveur que le placement est terminé
+	_send_placement_done_to_server()
 	
 	# Cacher les zones de placement
 	if combat_grid:
@@ -630,45 +654,49 @@ func _teleport_entities_to_grid():
 	var grid_width = combat_grid.grid_width
 	var grid_height = combat_grid.grid_height
 	
-	# Téléporter le joueur (zone bleue - position Dofus classique)
+	# Téléporter le joueur (zone ROUGE - position alliée côté droit)
 	if game_manager and game_manager.current_player:
-		var player_grid_pos = Vector2i(2, int(grid_height / 2))  # 3ème colonne, milieu
+		var player_grid_pos = Vector2i(grid_width - 3, int(grid_height / 2))  # Zone rouge (3ème colonne depuis la droite), milieu
 		var player_world_pos = combat_grid.grid_to_screen(player_grid_pos) + combat_grid.global_position
 		game_manager.current_player.global_position = player_world_pos
 		
-		# Faire regarder le joueur vers les monstres (vers la droite)
+		print("[CombatManager] 🔴 Joueur placé en zone ROUGE: ", player_grid_pos)
+		
+		# Faire regarder le joueur vers les monstres (vers la gauche)
 		var player = game_manager.current_player
 		if player.has_method("set_facing_direction"):
-			player.set_facing_direction(1)  # Face à droite vers les monstres
+			player.set_facing_direction(-1)  # Face à gauche vers les monstres (zone bleue)
 		elif player.sprite and player.sprite is Sprite2D:
-			player.sprite.flip_h = false  # Normal (face à droite)
+			player.sprite.flip_h = true  # Miroir (face à gauche)
 		
-		print("[CombatManager] ✅ Joueur téléporté à: ", player_world_pos, " (grille: ", player_grid_pos, ") - Zone bleue Dofus")
+		print("[CombatManager] ✅ Joueur téléporté à: ", player_world_pos, " (grille: ", player_grid_pos, ") - Zone rouge Dofus")
 	
-	# Téléporter les monstres (zone rouge - position Dofus classique)
+	# Téléporter les monstres (zone BLEUE - position ennemie côté gauche)
 	if game_manager and game_manager.monsters:
-		var monster_base_pos = Vector2i(grid_width - 3, int(grid_height / 2))  # 3ème colonne depuis la droite
+		var monster_base_pos = Vector2i(2, int(grid_height / 2))  # Zone bleue (3ème colonne depuis la gauche), milieu
 		var monster_count = 0
 		for monster_id in game_manager.monsters.keys():
 			var monster = game_manager.monsters[monster_id]
 			if monster and is_instance_valid(monster):
-				# Positionner les monstres en ligne dans la zone rouge
+				# Positionner les monstres en ligne dans la zone bleue
 				var adjusted_pos = Vector2i(monster_base_pos.x, monster_base_pos.y + monster_count - 1)
 				var monster_world_pos = combat_grid.grid_to_screen(adjusted_pos) + combat_grid.global_position
 				monster.global_position = monster_world_pos
 				
-				# Faire regarder le monstre vers le joueur (inverser le sprite)
+				print("[CombatManager] 🔵 Monstre placé en zone BLEUE: ", adjusted_pos)
+				
+				# Faire regarder le monstre vers le joueur (vers la droite)
 				if monster.has_method("set_facing_direction"):
-					monster.set_facing_direction(-1)  # Face à gauche vers le joueur
+					monster.set_facing_direction(1)  # Face à droite vers le joueur (zone rouge)
 				else:
 					# Essayer de trouver et retourner le sprite
 					var sprite_node = monster.get_node_or_null("Sprite2D")
 					if not sprite_node:
 						sprite_node = monster.get_node_or_null("sprite")
 					if sprite_node and sprite_node is Sprite2D:
-						sprite_node.flip_h = true  # Inverser horizontalement
+						sprite_node.flip_h = false  # Normal (face à droite vers joueur)
 				
-				print("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone rouge Dofus")
+				print("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone bleue Dofus")
 				monster_count += 1
 				if monster_count >= 3:  # Maximum 3 monstres visibles
 					break
@@ -756,9 +784,13 @@ func _end_combat_with_result(result_data: Dictionary):
 	print("[CombatManager] 🏁 Fin du combat")
 	
 	is_combat_active = false
+	var status_str = "UNKNOWN"
+	if current_combat_state != null and is_instance_valid(current_combat_state):
+		status_str = str(current_combat_state.status)
+		
 	var result = {
 		"combat_id": current_combat_id,
-		"status": current_combat_state.status if current_combat_state != null else "UNKNOWN"
+		"status": status_str
 	}
 	
 	# Fusionner les données de résultat personnalisées
@@ -850,8 +882,93 @@ func _restore_entities_positions():
 		# Dans le futur, on pourrait restaurer la position pré-combat
 		print("[CombatManager] ✅ Position joueur maintenue")
 	
-	# Les monstres restent où ils sont pour l'instant
+	# Restaurer les monstres qui ont été re-parentés
+	if game_manager and game_manager.monsters:
+		for monster_id in game_manager.monsters.keys():
+			var monster = game_manager.monsters[monster_id]
+			if monster and is_instance_valid(monster):
+				# Si l'entité monstre a été reparentée hors de la map, la replacer
+				if monster.get_parent() != game_manager.current_map:
+					var old_parent = monster.get_parent()
+					if old_parent:
+						old_parent.remove_child(monster)
+					game_manager.current_map.add_child(monster)
+					print("[CombatManager] 🔄 Monstre %s re-parenté vers la map" % monster.monster_name)
+				
+				# Si le monstre est mort en combat, le détruire
+				if not monster.is_alive:
+					game_manager.monsters.erase(monster_id)
+					monster.queue_free()
+					print("[CombatManager] 💀 Monstre %s détruit car mort en combat" % monster.monster_name)
+				else:
+					# Sinon, repositionner le monstre à sa position d'origine si possible
+					if monster.monster_data.has("original_pos_x") and monster.monster_data.has("original_pos_y"):
+						monster.global_position = Vector2(monster.monster_data.original_pos_x, monster.monster_data.original_pos_y)
+						print("[CombatManager] 📍 Monstre %s repositionné à sa position d'origine" % monster.monster_name)
+					monster.visible = true
+	
 	print("[CombatManager] ✅ Positions restaurées")
+
+# ================================
+# SYNCHRONISATION PLACEMENT SERVEUR
+# ================================
+
+## Envoie un message au serveur pour confirmer le placement terminé
+func _send_placement_done_to_server():
+	"""Notifie le serveur que le joueur a terminé son placement"""
+	print("[CombatManager] 📤 Envoi confirmation placement au serveur...")
+	
+	if not websocket_manager:
+		print("[CombatManager] ⚠️ WebSocketManager non disponible - Placement non synchronisé")
+		return
+	
+	# Obtenir la position finale du joueur
+	var player_pos = _get_player_grid_position()
+	
+	var placement_data = {
+		"type": "placement_done",
+		"data": {
+			"combat_id": current_combat_id,
+			"player_id": _get_local_player_id(),
+			"player_position": {
+				"x": player_pos.x,
+				"y": player_pos.y
+			}
+		}
+	}
+	
+	# Envoyer via WebSocket
+	if websocket_manager.has_method("send_combat_message"):
+		websocket_manager.send_combat_message(placement_data)
+		print("[CombatManager] ✅ Confirmation placement envoyée: ", placement_data)
+	elif websocket_manager.has_method("send_message"):
+		websocket_manager.send_message(placement_data)
+		print("[CombatManager] ✅ Confirmation placement envoyée (méthode générique): ", placement_data)
+	else:
+		print("[CombatManager] ⚠️ Méthode d'envoi WebSocket non trouvée")
+
+## Obtient la position grille actuelle du joueur
+func _get_player_grid_position() -> Vector2i:
+	"""Retourne la position du joueur sur la grille"""
+	if not combat_grid:
+		return Vector2i(-1, -1)
+	
+	# Chercher la position du joueur sur la grille
+	for y in range(combat_grid.grid_height):
+		for x in range(combat_grid.grid_width):
+			var pos = Vector2i(x, y)
+			var cell_data = combat_grid.get_cell_data(pos)
+			if cell_data.get("occupied_by", "") == "player":
+				return pos
+	
+	return Vector2i(-1, -1)
+
+## Obtient l'ID du joueur local pour les messages serveur
+func _get_local_player_id() -> String:
+	"""Retourne l'ID du joueur local"""
+	if game_manager and game_manager.current_player:
+		return game_manager.current_player.get("player_id", "local_player")
+	return "local_player"
 
 # ================================
 # GESTION DES ACTIONS JOUEUR
