@@ -7,3 +7,6 @@ res://game/ui/Chat.tscn
 res://game/combat/CombatManager.gd
 res://game/combat/CombatGrid.gd
 res://game/network/WebSocketManager.gd
+res://game/combat/CombatUI.gd
+res://game/combat/CombatUI.tscn
+res://MD/TestPlacementScene.tscn

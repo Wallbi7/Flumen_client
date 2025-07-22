@@ -105,21 +105,12 @@ func _ready():
 
 ## Centre la grille style Dofus sur l'écran
 func _center_grid_on_screen():
-	var screen_size = get_viewport().get_visible_rect().size
+	# CORRECTION: Ne pas centrer la grille forcément pour conserver les positions relatives
+	print("[CombatGrid] 📍 Conservation de la position naturelle de la grille (pas de recentrage)")
+	print("[CombatGrid] 📍 Position actuelle conservée: %s" % position)
 	
-	# Calculer les vraies dimensions de la grille isométrique
-	# Pour une grille isométrique, la largeur et hauteur réelles sont différentes
-	var total_grid_width = (grid_width + grid_height) * (CELL_WIDTH / 2.0)
-	var total_grid_height = (grid_width + grid_height) * (CELL_HEIGHT / 2.0)
-	
-	# Centrer parfaitement au milieu de l'écran avec ajustement pour l'isométrie
-	position = Vector2(
-		(screen_size.x - total_grid_width) / 2.0 + total_grid_width / 4.0,  # Ajustement horizontal pour isométrie
-		(screen_size.y - total_grid_height) / 2.0 - 100  # Décalage vers le haut pour UI
-	)
-	
-	print("[CombatGrid] ✅ Grille Dofus %dx%d centrée (isométrique) - Position: %s" % [grid_width, grid_height, position])
-	print("[CombatGrid] 📏 Dimensions calculées: %dx%d pixels" % [total_grid_width, total_grid_height])
+	# La grille reste à sa position naturelle pour conserver la cohérence spatiale avec la carte normale
+	# Cela évite la téléportation du joueur vers une position incorrecte
 
 # ================================
 # SYNCHRONISATION AVEC SERVEUR
@@ -206,44 +197,36 @@ func _update_combatant_positions():
 	
 	# Ne pas régénérer ici - on le fait dans update_from_server_state()
 
-## Met à jour les zones de placement style Dofus (bleu/rouge)
+## Met à jour les zones de placement depuis l'état du serveur uniquement
 func _update_placement_zones():
 	if not current_combat_state:
-		# Créer les zones par défaut style Dofus si pas d'état combat
+		# Créer les zones par défaut si pas d'état combat
 		_create_default_dofus_placement_zones()
 		return
 	
-	# CORRECTION DU CONFLIT: Toujours utiliser les zones locales étendues pendant PLACEMENT
-	if current_combat_state.status == CombatState.CombatStatus.PLACEMENT:
-		print("[CombatGrid] ⚡ PHASE PLACEMENT - Utilisation des zones locales étendues (ignore serveur)")
-		# NE PAS utiliser les zones du serveur qui sont plus petites
-		# Garder nos zones étendues locales créées par _create_default_dofus_placement_zones()
-		# Juste s'assurer qu'elles sont toujours marquées correctement
-		_preserve_local_placement_zones()
-		return
+	# NOUVEAU: Utiliser UNIQUEMENT les zones du serveur (JSON config ou default)
+	print("[CombatGrid] 🔄 Utilisation des zones serveur - Alliés: ", current_combat_state.ally_start_zone.size(), " Ennemis: ", current_combat_state.enemy_start_zone.size())
 	
-	# Pour les autres phases, utiliser les zones du serveur
-	if current_combat_state.status == CombatState.CombatStatus.IN_PROGRESS:
-		print("[CombatGrid] ⚡ SERVEUR - Configuration zones: Alliés=", current_combat_state.ally_placement_cells.size(), " Ennemis=", current_combat_state.enemy_placement_cells.size())
-		print("[CombatGrid] ⚡ SERVEUR - Status combat: ", current_combat_state.status)
-		
-		# Zones alliées du serveur
-		for cell_pos in current_combat_state.ally_placement_cells:
-			if is_valid_grid_position(cell_pos):
-				var cell_data = get_cell_data(cell_pos)
-				cell_data["placement_zone"] = "ally"
-				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
-				print("[CombatGrid] ⚡ SERVEUR - Zone alliée appliquée: ", cell_pos)
-		
-		# Zones ennemies du serveur
-		for cell_pos in current_combat_state.enemy_placement_cells:
-			if is_valid_grid_position(cell_pos):
-				var cell_data = get_cell_data(cell_pos)
-				cell_data["placement_zone"] = "enemy"
-				set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
-				print("[CombatGrid] ⚡ SERVEUR - Zone ennemie appliquée: ", cell_pos)
-	else:
-		print("[CombatGrid] ⚠️ SERVEUR - Status ne permet pas l'affichage des zones: ", current_combat_state.status)
+	# Nettoyer les zones existantes
+	_clear_all_placement_zones()
+	
+	# Appliquer les zones alliées (ROUGE) du serveur
+	for zone_pos in current_combat_state.ally_start_zone:
+		var cell_pos = Vector2i(zone_pos.x, zone_pos.y)
+		if is_valid_grid_position(cell_pos):
+			var cell_data = get_cell_data(cell_pos)
+			cell_data["placement_zone"] = "ally"
+			set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
+			print("[CombatGrid] 🔴 Zone alliée (rouge) du serveur: ", cell_pos)
+	
+	# Appliquer les zones ennemies (BLEUE) du serveur  
+	for zone_pos in current_combat_state.enemy_start_zone:
+		var cell_pos = Vector2i(zone_pos.x, zone_pos.y)
+		if is_valid_grid_position(cell_pos):
+			var cell_data = get_cell_data(cell_pos)
+			cell_data["placement_zone"] = "enemy"
+			set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
+			print("[CombatGrid] 🔵 Zone ennemie (bleue) du serveur: ", cell_pos)
 
 ## Crée les zones de placement par défaut style Dofus avec plus de cases
 func _create_default_dofus_placement_zones():
@@ -335,6 +318,25 @@ func clear_placement_zones():
 	
 	_generate_visual_grid()
 	print("[CombatGrid] ✅ %d zones de placement nettoyées" % cleaned_count)
+
+## Nettoie toutes les zones de placement (sans protection)
+func _clear_all_placement_zones():
+	"""Supprime toutes les zones de placement sans vérification de phase"""
+	var cleaned_count = 0
+	
+	for y in range(grid_height):
+		for x in range(grid_width):
+			var cell_pos = Vector2i(x, y)
+			var cell_data = get_cell_data(cell_pos)
+			if not cell_data.is_empty():
+				if cell_data["state"] in [CellState.PLACEMENT_ALLY, CellState.PLACEMENT_ENEMY]:
+					set_cell_state(cell_pos, CellState.NORMAL)
+					# Supprimer aussi la marque placement_zone
+					if cell_data.has("placement_zone"):
+						cell_data.erase("placement_zone")
+					cleaned_count += 1
+	
+	print("[CombatGrid] 🧹 %d zones nettoyées (sans protection)" % cleaned_count)
 
 ## Gère le clic sur une cellule de placement
 func handle_placement_click(grid_pos: Vector2i):

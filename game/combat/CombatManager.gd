@@ -370,33 +370,40 @@ func _place_monsters_only():
 		print("[CombatManager] ⚠️ Aucun monstre combattant dans l'état de combat")
 		return
 	
-	# Placer les monstres dans les zones BLEUES (côté gauche) de manière aléatoire
-	var available_blue_positions: Array[Vector2i] = []
+	# NOUVEAU: Utiliser UNIQUEMENT les zones ennemies du serveur (JSON config ou default)
+	var available_enemy_positions: Array[Vector2i] = []
 	
-	# Collecter toutes les positions de la zone bleue (6 premières colonnes maintenant)
-	var enemy_columns = 6  # Correspond au nouveau système étendu
-	for y in range(grid_height):
-		for x in range(0, min(enemy_columns, grid_width)):
-			var pos = Vector2i(x, y)
+	# Utiliser les zones ennemies définies par le serveur (JSON config ou default)
+	if current_combat_state and current_combat_state.enemy_placement_cells:
+		for pos in current_combat_state.enemy_placement_cells:
 			if combat_grid.is_valid_grid_position(pos):
-				# Vérifier que c'est bien une zone bleue libre
-				var cell_data = combat_grid.get_cell_data(pos)
-				if cell_data.get("placement_zone", "") == "enemy" and cell_data.get("occupied_by", "") == "":
-					available_blue_positions.append(pos)
+				# Ajouter toutes les positions disponibles (pas de filtre libre)
+				available_enemy_positions.append(pos)
+	else:
+		print("[CombatManager] ⚠️ Aucune zone ennemie définie par le serveur, utilisation fallback")
+		# Fallback: utiliser les zones bleues par défaut (gauche)
+		for y in range(grid_height):
+			for x in range(4):  # 4 colonnes à gauche
+				available_enemy_positions.append(Vector2i(x, y))
 	
-	print("[CombatManager] 🎯 %d positions bleues disponibles pour les monstres (zone étendue)" % available_blue_positions.size())
+	print("[CombatManager] 🎯 %d positions ennemies disponibles (serveur)" % available_enemy_positions.size())
 	
 	# Mélanger les positions pour un placement aléatoire
-	available_blue_positions.shuffle()
+	available_enemy_positions.shuffle()
 	
-	var monster_count = 0
-	for combatant in monster_combatants:
-		if monster_count >= available_blue_positions.size():
-			break
-			
-		# FORCER le placement dans les zones bleues (ignorer position serveur)
-		var grid_pos: Vector2i = available_blue_positions[monster_count]
-		print("[CombatManager] 🔵 Placement forcé en zone bleue pour %s: %s" % [combatant.name, grid_pos])
+	# SUPPRESSION LIMITE 3 MONSTRES: Placer TOUS les monstres du combat
+	for i in range(monster_combatants.size()):
+		var combatant = monster_combatants[i]
+		
+		# Choisir position aléatoire dans les zones ennemies
+		var grid_pos: Vector2i
+		if available_enemy_positions.size() > 0:
+			grid_pos = available_enemy_positions[i % available_enemy_positions.size()]
+		else:
+			# Fallback si aucune position
+			grid_pos = Vector2i(i % 4, 5 + (i / 4))
+		
+		print("[CombatManager] 🔵 Placement monstre %s aléatoirement en zone ennemie: %s" % [combatant.name, grid_pos])
 		
 		# Créer ou récupérer la représentation visuelle du monstre
 		var monster_visual = _create_monster_visual_from_combatant(combatant)
@@ -419,9 +426,8 @@ func _place_monsters_only():
 		combat_grid.set_cell_state(grid_pos, combat_grid.CellState.OCCUPIED_ENEMY)
 		
 		print("[CombatManager] ✅ Monstre '%s' placé: Grille%s -> Monde%s" % [combatant.name, grid_pos, world_pos])
-		monster_count += 1
 	
-	print("[CombatManager] ✅ Placement terminé: %d monstres placés" % monster_count)
+	print("[CombatManager] ✅ Placement terminé: %d monstres placés (SANS LIMITE)" % monster_combatants.size())
 
 ## Crée une représentation visuelle d'un monstre à partir des données combattant
 func _create_monster_visual_from_combatant(combatant) -> Node2D:
@@ -434,7 +440,7 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 			if existing_monster and existing_monster.monster_name == combatant.name:
 				print("[CombatManager] 🔄 Réutilisation du monstre existant: %s" % combatant.name)
 				
-				# CORRECTION DU BUG: Re-parenter le monstre vers la scène de combat
+				# SYSTÈME RE-PARENTAGE: Si le monstre existe déjà sur la map, le re-parenter
 				var combat_parent = combat_grid.get_parent()
 				if combat_parent and existing_monster.get_parent() != combat_parent:
 					# Détacher du parent actuel (la map masquée)
@@ -445,6 +451,7 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 					
 					# Rattacher au parent de combat visible
 					combat_parent.add_child(existing_monster)
+					existing_monster.visible = true
 					print("[CombatManager] ✅ Monstre re-parenté vers la scène de combat visible")
 				
 				return existing_monster
@@ -615,24 +622,24 @@ func _hide_world_map():
 		print("[CombatManager] ✅ Carte masquée")
 
 func _center_camera_on_combat():
-	"""Centre la caméra sur la zone de combat"""
+	"""Centre la caméra sur la zone de combat en conservant la position du joueur"""
 	print("[CombatManager] 📷 Centrage caméra sur combat...")
 	
-	# Obtenir les dimensions de l'écran
-	var screen_size = get_viewport().get_visible_rect().size
-	var screen_center = screen_size / 2.0
+	# CORRECTION: Ne pas forcer le centrage de la caméra pour conserver la position relative
+	# La caméra doit suivre le joueur normalement
 	
 	# Obtenir la caméra principale
 	var camera = get_viewport().get_camera_2d()
-	if camera:
-		# Centrer sur le centre de l'écran
-		camera.global_position = screen_center
-		print("[CombatManager] ✅ Caméra centrée sur: ", screen_center)
+	if camera and game_manager and game_manager.current_player:
+		# Centrer la caméra sur la position du joueur au lieu du centre de l'écran
+		var player_pos = game_manager.current_player.global_position
+		camera.global_position = player_pos
+		print("[CombatManager] ✅ Caméra centrée sur le joueur à: ", player_pos)
 	
-	# La grille se centre automatiquement via sa fonction _center_grid_on_screen()
+	# CORRECTION: Ne pas forcer le centrage de la grille pour conserver les positions relatives
+	# La grille doit rester à sa position naturelle par rapport à la carte
 	if combat_grid:
-		combat_grid._center_grid_on_screen()
-		print("[CombatManager] ✅ Grille recentrée automatiquement")
+		print("[CombatManager] ✅ Grille conserve sa position naturelle (pas de recentrage forcé)")
 
 func _teleport_entities_to_grid():
 	"""Téléporte le joueur et les monstres sur la grille de combat"""
@@ -654,22 +661,20 @@ func _teleport_entities_to_grid():
 	var grid_width = combat_grid.grid_width
 	var grid_height = combat_grid.grid_height
 	
-	# Téléporter le joueur (zone ROUGE - position alliée côté droit)
+	# CORRECTION: Ne pas téléporter le joueur automatiquement en phase de placement
+	# Le joueur doit rester à sa position actuelle et pourra se placer manuellement
 	if game_manager and game_manager.current_player:
-		var player_grid_pos = Vector2i(grid_width - 3, int(grid_height / 2))  # Zone rouge (3ème colonne depuis la droite), milieu
-		var player_world_pos = combat_grid.grid_to_screen(player_grid_pos) + combat_grid.global_position
-		game_manager.current_player.global_position = player_world_pos
+		print("[CombatManager] 👤 Joueur conserve sa position actuelle pendant la phase de placement")
+		print("[CombatManager] 📍 Position actuelle du joueur: ", game_manager.current_player.global_position)
 		
-		print("[CombatManager] 🔴 Joueur placé en zone ROUGE: ", player_grid_pos)
-		
-		# Faire regarder le joueur vers les monstres (vers la gauche)
+		# Faire regarder le joueur vers les monstres (vers la gauche) mais sans le déplacer
 		var player = game_manager.current_player
 		if player.has_method("set_facing_direction"):
 			player.set_facing_direction(-1)  # Face à gauche vers les monstres (zone bleue)
 		elif player.sprite and player.sprite is Sprite2D:
 			player.sprite.flip_h = true  # Miroir (face à gauche)
 		
-		print("[CombatManager] ✅ Joueur téléporté à: ", player_world_pos, " (grille: ", player_grid_pos, ") - Zone rouge Dofus")
+		print("[CombatManager] ✅ Orientation du joueur ajustée pour le combat")
 	
 	# Téléporter les monstres (zone BLEUE - position ennemie côté gauche)
 	if game_manager and game_manager.monsters:
@@ -698,8 +703,7 @@ func _teleport_entities_to_grid():
 				
 				print("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone bleue Dofus")
 				monster_count += 1
-				if monster_count >= 3:  # Maximum 3 monstres visibles
-					break
+				# SUPPRESSION LIMITE 3 MONSTRES: Continuer avec tous les monstres
 
 func _finish_transition():
 	"""Finalise la transition"""

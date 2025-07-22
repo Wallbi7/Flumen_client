@@ -14,11 +14,13 @@ class_name CombatUI
 @onready var main_container: Control = $MainContainer
 
 ## Section des ressources (PA/PM)
-@onready var resources_panel: HBoxContainer = $MainContainer/ResourcesPanel
+@onready var resources_panel: VBoxContainer = $MainContainer/ResourcesPanel
 @onready var ap_label: Label = $MainContainer/ResourcesPanel/APContainer/APLabel
 @onready var ap_bar: ProgressBar = $MainContainer/ResourcesPanel/APContainer/APBar
+@onready var ap_value: Label = $MainContainer/ResourcesPanel/APContainer/APValue
 @onready var mp_label: Label = $MainContainer/ResourcesPanel/MPContainer/MPLabel
 @onready var mp_bar: ProgressBar = $MainContainer/ResourcesPanel/MPContainer/MPBar
+@onready var mp_value: Label = $MainContainer/ResourcesPanel/MPContainer/MPValue
 
 ## Section de l'ordre des tours avec initiative
 @onready var turn_order_panel: VBoxContainer = $MainContainer/TurnOrderPanel
@@ -32,7 +34,8 @@ class_name CombatUI
 @onready var item_button: Button = $MainContainer/ActionsPanel/ItemButton
 @onready var pass_button: Button = $MainContainer/ActionsPanel/PassButton
 @onready var end_turn_button: Button = $MainContainer/ActionsPanel/EndTurnButton
-@onready var ready_button: Button = $MainContainer/ActionsPanel/ReadyButton
+@onready var ready_panel: VBoxContainer = $MainContainer/ReadyPanel
+@onready var ready_button: Button = $MainContainer/ReadyPanel/ReadyButton
 
 ## Section du timer et informations (Timer 30s Dofus-like)
 @onready var info_panel: HBoxContainer = $MainContainer/InfoPanel
@@ -99,6 +102,17 @@ func _ready():
 	
 	# Masquer l'interface par défaut
 	hide_combat_ui()
+	
+	# DEBUG: Vérifier que le bouton Prêt existe
+	if ready_button:
+		print("[CombatUI] ✅ Ready button found at startup: ", ready_button.get_path())
+		# S'assurer que le parent panel est visible
+		var ready_panel = ready_button.get_parent()
+		if ready_panel:
+			ready_panel.visible = true
+			print("[CombatUI] ✅ Ready panel made visible")
+	else:
+		print("[CombatUI] ❌ Ready button NOT FOUND at startup")
 
 ## Connecte les signaux des boutons d'actions
 func _connect_action_buttons():
@@ -190,42 +204,42 @@ func update_resources_display():
 		return
 	
 	# Affichage des Points d'Action (PA) - Style Dofus avec couleurs vibrantes
-	if ap_label and ap_bar:
+	if ap_bar and ap_value:
 		var current_ap = local_player_combatant.remaining_action_points
 		var max_ap = local_player_combatant.base_action_points
-		ap_label.text = "PA: %d/%d" % [current_ap, max_ap]
+		ap_value.text = "%d/%d" % [current_ap, max_ap]
 		ap_bar.max_value = max_ap
 		ap_bar.value = current_ap
 		
 		# Couleurs style Dofus authentiques
 		if current_ap == 0:
 			ap_bar.modulate = ENEMY_COLOR  # Rouge Dofus
-			ap_label.modulate = ENEMY_COLOR
+			ap_value.modulate = ENEMY_COLOR
 		elif current_ap <= max_ap * 0.3:
 			ap_bar.modulate = DOFUS_ORANGE  # Orange Dofus
-			ap_label.modulate = DOFUS_ORANGE
+			ap_value.modulate = DOFUS_ORANGE
 		else:
 			ap_bar.modulate = DOFUS_GREEN  # Vert Dofus
-			ap_label.modulate = DOFUS_GREEN
+			ap_value.modulate = DOFUS_GREEN
 	
 	# Affichage des Points de Mouvement (PM) - Style Dofus
-	if mp_label and mp_bar:
+	if mp_bar and mp_value:
 		var current_mp = local_player_combatant.remaining_movement_points
 		var max_mp = local_player_combatant.base_movement_points
-		mp_label.text = "PM: %d/%d" % [current_mp, max_mp]
+		mp_value.text = "%d/%d" % [current_mp, max_mp]
 		mp_bar.max_value = max_mp
 		mp_bar.value = current_mp
 		
 		# Couleurs style Dofus pour les PM
 		if current_mp == 0:
 			mp_bar.modulate = ENEMY_COLOR  # Rouge Dofus
-			mp_label.modulate = ENEMY_COLOR
+			mp_value.modulate = ENEMY_COLOR
 		elif current_mp <= 1:
 			mp_bar.modulate = DOFUS_ORANGE  # Orange Dofus
-			mp_label.modulate = DOFUS_ORANGE
+			mp_value.modulate = DOFUS_ORANGE
 		else:
 			mp_bar.modulate = ALLY_COLOR  # Bleu Dofus
-			mp_label.modulate = ALLY_COLOR
+			mp_value.modulate = ALLY_COLOR
 
 ## Masque l'affichage des ressources
 func _hide_resources():
@@ -349,6 +363,12 @@ func _create_turn_order_entry(combatant: CombatState.Combatant, is_current: bool
 func show_combat_ui():
 	visible = true
 	print("[CombatUI] 👁️ Interface de combat affichée")
+	
+	# DEBUG: Diagnostiquer tous les éléments de l'interface
+	_debug_all_ui_elements()
+	
+	# DEBUG: Forcer l'affichage du bouton Prêt
+	force_show_ready_button()
 
 ## Masque l'interface de combat
 func hide_combat_ui():
@@ -455,6 +475,13 @@ func update_action_buttons():
 		var is_placement_phase = is_placement_mode or (current_combat_state and current_combat_state.status == CombatState.CombatStatus.PLACEMENT)
 		ready_button.visible = is_placement_phase
 		ready_button.disabled = not is_placement_phase
+		
+		# DEBUG: Logger l'état du bouton Prêt
+		print("[CombatUI] 🔍 Ready button state: visible=%s, disabled=%s" % [ready_button.visible, ready_button.disabled])
+		print("[CombatUI] 🔍 Placement conditions: is_placement_mode=%s, combat_status=%s" % [
+			is_placement_mode, 
+			current_combat_state.status if current_combat_state else "null"
+		])
 
 ## Désactive tous les boutons d'actions
 func _disable_all_action_buttons():
@@ -515,7 +542,13 @@ func _on_timer_update():
 		if remaining_time <= 0:
 			# Fallback: timer simple 30 secondes par défaut
 			remaining_time = _get_simple_timer_fallback()
+		
 		update_timer_display(remaining_time)
+		
+		# NOUVEAU: Timer auto-placement - Forcer "prêt" quand timer = 0 en phase placement
+		if remaining_time <= 0 and current_combat_state.status == CombatState.CombatStatus.PLACEMENT and is_placement_mode:
+			_auto_ready_player_on_timeout()
+			print("[CombatUI] ⏰ Timer écoulé - Joueur automatiquement mis en 'prêt'")
 
 ## Système de timer de fallback simple quand le serveur ne répond pas
 var _simple_timer_start_time: float = 0
@@ -538,6 +571,32 @@ func _get_simple_timer_fallback() -> float:
 		print("[CombatUI] 🔄 Reset timer simple")
 	
 	return remaining
+
+## Force le joueur à être "prêt" quand le timer de placement atteint 0
+func _auto_ready_player_on_timeout():
+	"""Appelé quand le timer de placement atteint 0 - Force le joueur en 'prêt'"""
+	print("[CombatUI] ⏰🚨 TIMEOUT PLACEMENT - Forçage automatique en 'prêt'")
+	
+	# Désactiver le timer pour éviter les appels répétés
+	timer_update_timer.stop()
+	is_placement_mode = false
+	
+	# Changer l'affichage du bouton pour indiquer que c'est automatique
+	if ready_button:
+		ready_button.text = "Prêt (Auto)"
+		ready_button.disabled = true
+		ready_button.modulate = DOFUS_ORANGE  # Orange pour indiquer que c'est forcé
+	
+	# Mettre à jour l'affichage de phase
+	if phase_label:
+		phase_label.text = "⏰ Temps écoulé - Placement automatique"
+		phase_label.modulate = ENEMY_COLOR
+	
+	# Déclencher la même logique que le bouton "Prêt" manuel
+	_trigger_ready_action(true)  # true = automatique
+
+## Signal interne pour éviter les doubles-appels du timer
+var _auto_ready_triggered: bool = false
 
 # ================================
 # GESTIONNAIRES D'ÉVÉNEMENTS
@@ -580,16 +639,45 @@ func _on_end_turn_button_pressed():
 ## Gestionnaire du bouton prêt (phase de placement)
 func _on_ready_button_pressed():
 	print("[CombatUI] ✅ Bouton Prêt pressé - Joueur prêt pour commencer le combat")
+	_trigger_ready_action(false)  # false = manuel
+
+## Logique unifiée pour "prêt" (manuel ou automatique)
+func _trigger_ready_action(is_automatic: bool = false):
+	"""Déclenche l'action 'prêt' - unifiée pour bouton manuel et timeout automatique"""
 	
+	# Protection contre les doubles-appels
+	if _auto_ready_triggered:
+		print("[CombatUI] ⚠️ Action 'prêt' déjà déclenchée - Ignoré")
+		return
+	_auto_ready_triggered = true
+	
+	var source = "AUTOMATIQUE" if is_automatic else "MANUEL"
+	print("[CombatUI] 🎯 Action 'prêt' déclenchée (%s)" % source)
+	
+	# Mettre à jour l'interface pour indiquer que le joueur est prêt
+	if ready_button:
+		ready_button.text = "Prêt ✓" if not is_automatic else "Prêt (Auto) ✓"
+		ready_button.disabled = true
+		ready_button.modulate = DOFUS_GREEN
+	
+	# Envoyer au serveur que le joueur est prêt
+	_send_ready_to_server(is_automatic)
+	
+	# Protection contre les erreurs
+	if not is_instance_valid(self):
+		print("[CombatUI] ❌ CombatUI invalide lors de l'action prêt")
+		return
+		
 	# Méthodes multiples pour trouver CombatManager
 	var combat_manager = _find_combat_manager()
 	
-	if combat_manager and combat_manager.has_method("confirm_placement"):
+	if combat_manager and is_instance_valid(combat_manager) and combat_manager.has_method("confirm_placement"):
 		print("[CombatUI] 🎯 CombatManager trouvé, confirmation du placement...")
 		combat_manager.confirm_placement()
 	else:
 		print("[CombatUI] ⚠️ CombatManager non trouvé, émission du signal d'action")
-		action_requested.emit(CombatState.ActionType.READY_FOR_COMBAT, {})
+		if is_instance_valid(self):
+			action_requested.emit(CombatState.ActionType.READY_FOR_COMBAT, {"is_automatic": is_automatic})
 
 ## Trouve le CombatManager par plusieurs méthodes
 func _find_combat_manager() -> Node:
@@ -612,10 +700,15 @@ func _find_combat_manager() -> Node:
 	
 	# Méthode 3: Via GameManager
 	var game_manager = get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.has("combat_manager"):
-		combat_manager = game_manager.combat_manager
+	if game_manager and game_manager.has_method("get_combat_manager"):
+		combat_manager = game_manager.get_combat_manager()
 		if combat_manager:
 			print("[CombatUI] 🔍 CombatManager trouvé via GameManager")
+			return combat_manager
+	elif game_manager and "combat_manager" in game_manager:
+		combat_manager = game_manager.combat_manager
+		if combat_manager:
+			print("[CombatUI] 🔍 CombatManager trouvé via propriété GameManager")
 			return combat_manager
 	
 	# Méthode 4: Recherche récursive dans la scène
@@ -641,6 +734,92 @@ func _find_node_recursive(node: Node, target_name: String) -> Node:
 	
 	return null
 
+## Envoie l'état "prêt" au serveur
+func _send_ready_to_server(is_automatic: bool = false):
+	"""Notifie le serveur que le joueur est prêt pour le combat"""
+	print("[CombatUI] 📤 Envoi statut 'prêt' au serveur...")
+	
+	# Trouver le WebSocketManager
+	var websocket_manager = _find_websocket_manager()
+	if not websocket_manager:
+		print("[CombatUI] ⚠️ WebSocketManager non disponible - Statut non synchronisé")
+		return
+	
+	# Construire le message pour le serveur
+	var ready_message = {
+		"type": "player_ready",
+		"data": {
+			"combat_id": current_combat_state.id if current_combat_state else "unknown",
+			"player_id": _get_local_player_id(),
+			"is_ready": true,
+			"is_automatic": is_automatic,
+			"timestamp": Time.get_unix_time_from_system()
+		}
+	}
+	
+	# Envoyer via WebSocket
+	if websocket_manager.has_method("send_combat_message"):
+		websocket_manager.send_combat_message(ready_message)
+		print("[CombatUI] ✅ Message 'prêt' envoyé: ", ready_message)
+	elif websocket_manager.has_method("send_message"):
+		websocket_manager.send_message(ready_message)
+		print("[CombatUI] ✅ Message 'prêt' envoyé (méthode générique): ", ready_message)
+	else:
+		print("[CombatUI] ⚠️ Méthode d'envoi WebSocket non trouvée")
+
+## Trouve le WebSocketManager pour communication serveur
+func _find_websocket_manager() -> Node:
+	"""Recherche le WebSocketManager dans différents emplacements"""
+	var websocket_manager = null
+	
+	# Méthode 1: Via CombatManager
+	var combat_manager = _find_combat_manager()
+	if combat_manager and combat_manager.has_method("get_websocket_manager"):
+		websocket_manager = combat_manager.get_websocket_manager()
+		if websocket_manager:
+			return websocket_manager
+	elif combat_manager and "websocket_manager" in combat_manager:
+		websocket_manager = combat_manager.websocket_manager
+		if websocket_manager:
+			return websocket_manager
+	
+	# Méthode 2: Via GameManager
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.has_method("get_websocket_manager"):
+		websocket_manager = game_manager.get_websocket_manager()
+		if websocket_manager:
+			return websocket_manager
+	
+	# Méthode 3: Scène principale
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		websocket_manager = main_scene.get_node_or_null("WebSocketManager")
+		if websocket_manager:
+			return websocket_manager
+	
+	# Méthode 4: Recherche récursive
+	if main_scene:
+		websocket_manager = _find_node_recursive(main_scene, "WebSocketManager")
+		if websocket_manager:
+			return websocket_manager
+	
+	return null
+
+## Obtient l'ID du joueur local
+func _get_local_player_id() -> String:
+	"""Retourne l'ID du joueur local"""
+	# Méthode 1: Depuis le combattant local
+	if local_player_combatant:
+		return local_player_combatant.character_id
+	
+	# Méthode 2: Via GameManager
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.current_player:
+		return game_manager.current_player.get("player_id", "local_player")
+	
+	# Fallback
+	return "local_player"
+
 # ================================
 # UTILITAIRES PUBLICS
 # ================================
@@ -663,6 +842,33 @@ func show_temporary_message(message: String, _duration: float = 3.0):
 	print("[CombatUI] 📢 Message: ", message)
 	# TODO: Implémenter l'affichage de message temporaire avec durée variable
 
+## Force l'affichage du bouton Prêt (fonction de debug)
+func force_show_ready_button():
+	"""Force l'affichage du bouton Prêt pour debug"""
+	print("[CombatUI] 🚨 FORCE SHOW READY BUTTON DEBUG")
+	if ready_panel:
+		ready_panel.visible = true
+		ready_panel.modulate = Color.WHITE
+		print("[CombatUI] ✅ ReadyPanel forced visible")
+	if ready_button:
+		ready_button.visible = true
+		ready_button.disabled = false
+		ready_button.modulate = Color(1, 0, 0, 1)  # Rouge vif pour debug
+		ready_button.text = "🚨 TEST"
+		# Déconnecter et reconnecter le signal pour éviter les erreurs
+		if ready_button.pressed.is_connected(_on_ready_button_pressed):
+			ready_button.pressed.disconnect(_on_ready_button_pressed)
+		ready_button.pressed.connect(_on_ready_test_pressed)
+		print("[CombatUI] ✅ ReadyButton forced visible with red debug color")
+
+## Version simplifiée du bouton prêt pour test
+func _on_ready_test_pressed():
+	"""Version test simple du bouton prêt"""
+	print("[CombatUI] 🧪 BOUTON TEST PRESSÉ - Pas d'erreur !")
+	if ready_button:
+		ready_button.text = "✅ OK"
+		ready_button.modulate = Color.GREEN
+
 ## Active/désactive le mode placement
 func set_placement_mode(enabled: bool):
 	"""Active ou désactive le mode placement"""
@@ -670,16 +876,33 @@ func set_placement_mode(enabled: bool):
 	
 	if enabled:
 		print("[CombatUI] 🎯 Mode placement activé")
-		# Masquer les actions de combat et afficher seulement le bouton Prêt
+		# Réinitialiser le flag de protection pour permettre l'action "prêt"
+		_auto_ready_triggered = false
+		
+		# Réinitialiser le bouton prêt
+		if ready_button:
+			ready_button.text = "Prêt"
+			ready_button.disabled = false
+			ready_button.modulate = Color.WHITE
+		
+		# Masquer les actions de combat 
 		if actions_panel:
 			for child in actions_panel.get_children():
-				if child != ready_button:
-					child.visible = false
+				child.visible = false
+		
+		# Afficher explicitement le bouton Prêt (maintenant dans un panel séparé)
+		if ready_panel:
+			ready_panel.visible = true
+		if ready_button:
+			ready_button.visible = true
+			print("[CombatUI] 🎯 FORCED Ready button visible in placement mode")
+		else:
+			print("[CombatUI] ❌ Ready button not found!")
 		
 		# Mettre à jour l'affichage de phase
 		if phase_label:
-			phase_label.text = "Phase: Placement - Cliquez sur une case bleue"
-			phase_label.modulate = Color.BLUE
+			phase_label.text = "Phase: Placement - Cliquez sur une case rouge"
+			phase_label.modulate = ALLY_COLOR
 	else:
 		print("[CombatUI] ⚔️ Mode combat activé")
 		# Réafficher tous les boutons d'action
@@ -716,6 +939,121 @@ func debug_print_ui_state():
 	print("  - Prêt: ", "ACTIF" if (ready_button and ready_button.visible and not ready_button.disabled) else "INACTIF/N/A")
 	
 	print("======================================")
+
+## FONCTION DE TEST COMPLÈTE - Appelez depuis la console Godot
+func test_full_ui():
+	"""Fonction de test complète pour diagnostiquer toute l'interface"""
+	print("[CombatUI] 🧪 === TEST COMPLET UI ===")
+	
+	# Forcer l'affichage de l'interface
+	visible = true
+	show_combat_ui()
+	
+	# Diagnostiquer tous les éléments
+	_debug_all_ui_elements()
+	
+	# Forcer tous les éléments visibles
+	force_show_all_ui()
+	
+	# Activer le mode placement
+	set_placement_mode(true)
+	
+	# Forcer l'affichage du bouton prêt
+	force_show_ready_button()
+	
+	print("[CombatUI] 🧪 Test terminé - Tous les éléments devraient être visibles avec couleurs debug")
+
+## FONCTION DE TEST - Appelez depuis la console Godot
+func test_ready_button():
+	"""Fonction de test pour vérifier le bouton Prêt depuis la console"""
+	print("[CombatUI] 🧪 === TEST BOUTON PRÊT ===")
+	
+	# Forcer l'affichage de l'interface
+	show_combat_ui()
+	
+	# Activer le mode placement
+	set_placement_mode(true)
+	
+	# Forcer l'affichage du bouton
+	force_show_ready_button()
+	
+	print("[CombatUI] 🧪 Test terminé - Le bouton devrait être visible en rouge DEBUG")
+
+## Fonction de diagnostic complète des éléments UI
+func _debug_all_ui_elements():
+	"""Diagnostique tous les éléments de l'interface"""
+	print("[CombatUI] 🔍 === DIAGNOSTIC COMPLET UI ===")
+	
+	# Vérifier le conteneur principal
+	if main_container:
+		print("[CombatUI] ✅ MainContainer trouvé - visible: %s" % main_container.visible)
+		main_container.visible = true  # Forcer visible
+	else:
+		print("[CombatUI] ❌ MainContainer introuvable!")
+		
+	# Vérifier tous les panels
+	var panels = [
+		{"name": "ResourcesPanel", "node": resources_panel},
+		{"name": "TurnOrderPanel", "node": turn_order_panel},
+		{"name": "ActionsPanel", "node": actions_panel},
+		{"name": "InfoPanel", "node": info_panel},
+		{"name": "EffectsPanel", "node": effects_panel},
+		{"name": "ReadyPanel", "node": ready_panel},
+		{"name": "SpellBar", "node": spell_bar}
+	]
+	
+	for panel_info in panels:
+		var panel = panel_info.node
+		var name = panel_info.name
+		if panel:
+			print("[CombatUI] %s %s - visible: %s, position: %s" % [
+				"✅" if panel.visible else "❌",
+				name,
+				panel.visible,
+				panel.global_position
+			])
+			# FORCER TOUS LES PANELS VISIBLES
+			panel.visible = true
+			panel.modulate = Color.WHITE
+		else:
+			print("[CombatUI] ❌ %s introuvable!" % name)
+	
+	print("[CombatUI] 🔍 === FIN DIAGNOSTIC ===")
+
+## Fonction pour forcer TOUS les éléments visibles
+func force_show_all_ui():
+	"""Force tous les éléments UI à être visibles"""
+	print("[CombatUI] 🚨 FORÇAGE COMPLET DE L'UI")
+	
+	# Forcer le conteneur principal
+	if main_container:
+		main_container.visible = true
+		main_container.modulate = Color.WHITE
+	
+	# Forcer tous les panels
+	if resources_panel: 
+		resources_panel.visible = true
+		resources_panel.modulate = Color.CYAN  # Bleu pour debug
+	if turn_order_panel: 
+		turn_order_panel.visible = true
+		turn_order_panel.modulate = Color.YELLOW  # Jaune pour debug
+	if actions_panel: 
+		actions_panel.visible = true
+		actions_panel.modulate = Color.MAGENTA  # Magenta pour debug
+	if info_panel: 
+		info_panel.visible = true
+		info_panel.modulate = Color.WHITE
+	if effects_panel: 
+		effects_panel.visible = true
+		effects_panel.modulate = Color.GREEN  # Vert pour debug
+	if ready_panel: 
+		ready_panel.visible = true
+		ready_panel.modulate = Color.RED  # Rouge pour debug
+	if spell_bar: 
+		spell_bar.visible = true
+		spell_bar.modulate = Color.ORANGE  # Orange pour debug
+		
+	print("[CombatUI] 🚨 Tous les panels forcés visibles avec couleurs debug")
 
 ## Gestionnaire des boutons de sorts (style Dofus - raccourcis 1-6)
 func _on_spell_button_pressed(spell_index: int):
