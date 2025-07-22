@@ -6,6 +6,14 @@ class_name CombatManager
 ## Orchestrateur central adapté pour le nouveau système synchronisé avec serveur.
 ## Gère l'état de combat, les interactions client-serveur et l'interface utilisateur.
 
+# Active ou désactive l'affichage des messages de debug
+const DEBUG_LOGS := false
+
+# Utilitaire pour afficher des logs uniquement en mode debug
+func debug_log(...):
+    if DEBUG_LOGS:
+        print(...)
+
 # ================================
 # RÉFÉRENCES AUX SYSTÈMES
 # ================================
@@ -68,7 +76,7 @@ signal action_rejected(reason: String)
 # ================================
 
 func _ready():
-	print("\n[CombatManager] === INITIALISATION ===")
+	debug_log("\n[CombatManager] === INITIALISATION ===")
 	
 	# Chercher GameManager
 	game_manager = get_node_or_null("/root/GameManager")
@@ -87,16 +95,16 @@ func _ready():
 	
 	# Logger l'état
 	if game_manager:
-		print("[CombatManager] ✅ GameManager trouvé")
+		debug_log("[CombatManager] ✅ GameManager trouvé")
 	else:
-		print("[CombatManager] ⚠️ GameManager non trouvé")
+		debug_log("[CombatManager] ⚠️ GameManager non trouvé")
 	
 	if websocket_manager:
-		print("[CombatManager] ✅ WebSocketManager trouvé")
+		debug_log("[CombatManager] ✅ WebSocketManager trouvé")
 		# Connecter aux signaux réseau pour recevoir les mises à jour de combat
 		_connect_network_signals()
 	else:
-		print("[CombatManager] ⚠️ WebSocketManager non trouvé")
+		debug_log("[CombatManager] ⚠️ WebSocketManager non trouvé")
 
 ## Initialise le système d'effets visuels
 func _initialize_visual_effects():
@@ -108,38 +116,38 @@ func _initialize_visual_effects():
 	visual_effects_manager.animation_completed.connect(_on_visual_effect_completed)
 	visual_effects_manager.visual_effect_started.connect(_on_visual_effect_started)
 	
-	print("[CombatManager] 🎨 Système d'effets visuels initialisé")
+	debug_log("[CombatManager] 🎨 Système d'effets visuels initialisé")
 
 ## Callback quand un effet visuel se termine
 func _on_visual_effect_completed(effect_type: String):
-	print("[CombatManager] ✨ Effet visuel terminé: %s" % effect_type)
+	debug_log("[CombatManager] ✨ Effet visuel terminé: %s" % effect_type)
 
 ## Callback quand un effet visuel commence
 func _on_visual_effect_started(position: Vector2, type: String):
-	print("[CombatManager] 🎆 Effet visuel démarré: %s à %s" % [type, position])
+	debug_log("[CombatManager] 🎆 Effet visuel démarré: %s à %s" % [type, position])
 
 ## Connecte les signaux réseau pour la synchronisation
 func _connect_network_signals():
 	if not websocket_manager:
-		print("[CombatManager] ❌ Impossible de connecter les signaux réseau - WebSocketManager manquant")
+		debug_log("[CombatManager] ❌ Impossible de connecter les signaux réseau - WebSocketManager manquant")
 		return
 		
 	# Connecter aux signaux WebSocket pour les mises à jour de combat
 	if websocket_manager.has_signal("combat_update"):
 		websocket_manager.connect("combat_update", _on_combat_update_from_server)
-		print("[CombatManager] ✅ Signal combat_update connecté")
+		debug_log("[CombatManager] ✅ Signal combat_update connecté")
 		
 	if websocket_manager.has_signal("combat_action_response"):
 		websocket_manager.connect("combat_action_response", _on_combat_action_response)
-		print("[CombatManager] ✅ Signal combat_action_response connecté")
+		debug_log("[CombatManager] ✅ Signal combat_action_response connecté")
 		
 	if websocket_manager.has_signal("combat_ended"):
 		websocket_manager.connect("combat_ended", _on_combat_ended_from_server)
-		print("[CombatManager] ✅ Signal combat_ended connecté")
+		debug_log("[CombatManager] ✅ Signal combat_ended connecté")
 
 ## Initialise tous les systèmes de combat
 func initialize_combat_systems():
-	print("[CombatManager] 🔧 Initialisation des systèmes de combat...")
+	debug_log("[CombatManager] 🔧 Initialisation des systèmes de combat...")
 	
 	# Créer les systèmes de combat
 	_create_combat_grid()
@@ -148,29 +156,29 @@ func initialize_combat_systems():
 	# Connecter les systèmes entre eux
 	_connect_systems()
 	
-	print("[CombatManager] ✅ Tous les systèmes de combat initialisés")
+	debug_log("[CombatManager] ✅ Tous les systèmes de combat initialisés")
 
 ## Crée et configure le système de grille
 func _create_combat_grid():
 	if not is_instance_valid(combat_grid):
-		print("[CombatManager] 🔧 Création de la grille de combat...")
+		debug_log("[CombatManager] 🔧 Création de la grille de combat...")
 		
 		# Charger la scène CombatGrid
 		var grid_scene = preload("res://game/combat/CombatGrid.tscn")
 		if grid_scene:
 			combat_grid = grid_scene.instantiate()
 		else:
-			print("[CombatManager] ❌ Impossible de charger CombatGrid.tscn")
+			debug_log("[CombatManager] ❌ Impossible de charger CombatGrid.tscn")
 			return
 		
 		# Trouver la scène principale pour ajouter la grille
 		var main_scene = get_tree().current_scene
 		if main_scene:
 			main_scene.add_child(combat_grid)
-			print("[CombatManager] ✅ Grille ajoutée à la scène principale")
+			debug_log("[CombatManager] ✅ Grille ajoutée à la scène principale")
 		else:
 			add_child(combat_grid)
-			print("[CombatManager] ✅ Grille ajoutée au CombatManager")
+			debug_log("[CombatManager] ✅ Grille ajoutée au CombatManager")
 		
 		combat_grid.name = "CombatGrid"
 		combat_grid.z_index = 1000
@@ -179,9 +187,9 @@ func _create_combat_grid():
 		# Configurer la référence de grille pour les effets visuels
 		if visual_effects_manager:
 			visual_effects_manager.setup_grid_reference(combat_grid)
-			print("[CombatManager] 🎨 Référence grille configurée pour effets visuels")
+			debug_log("[CombatManager] 🎨 Référence grille configurée pour effets visuels")
 	else:
-		print("[CombatManager] ♻️ Grille de combat déjà existante")
+		debug_log("[CombatManager] ♻️ Grille de combat déjà existante")
 		# S'assurer que la référence est configurée même pour une grille existante
 		if visual_effects_manager and combat_grid:
 			visual_effects_manager.setup_grid_reference(combat_grid)
@@ -189,7 +197,7 @@ func _create_combat_grid():
 ## Crée et configure l'interface utilisateur
 func _create_combat_ui():
 	if not combat_ui:
-		print("[CombatManager] 🔧 Création de l'interface de combat...")
+		debug_log("[CombatManager] 🔧 Création de l'interface de combat...")
 		
 		# Charger la scène UI
 		var ui_scene = preload("res://game/combat/CombatUI.tscn")
@@ -200,25 +208,25 @@ func _create_combat_ui():
 			var main_scene = get_tree().current_scene
 			if main_scene:
 				main_scene.add_child(combat_ui)
-				print("[CombatManager] ✅ Interface ajoutée à la scène principale")
+				debug_log("[CombatManager] ✅ Interface ajoutée à la scène principale")
 			else:
 				add_child(combat_ui)
-				print("[CombatManager] ✅ Interface ajoutée au CombatManager")
+				debug_log("[CombatManager] ✅ Interface ajoutée au CombatManager")
 		else:
-			print("[CombatManager] ❌ Impossible de charger CombatUI.tscn")
+			debug_log("[CombatManager] ❌ Impossible de charger CombatUI.tscn")
 	else:
-		print("[CombatManager] ♻️ Interface de combat déjà existante")
+		debug_log("[CombatManager] ♻️ Interface de combat déjà existante")
 
 ## Connecte les systèmes entre eux
 func _connect_systems():
 	if combat_grid:
 		combat_grid.cell_clicked.connect(_on_grid_cell_clicked)
 		combat_grid.invalid_action.connect(_on_grid_invalid_action)
-		print("[CombatManager] 🔗 Grille connectée")
+		debug_log("[CombatManager] 🔗 Grille connectée")
 	
 	if combat_ui:
 		combat_ui.action_requested.connect(_on_ui_action_requested)
-		print("[CombatManager] 🔗 Interface connectée")
+		debug_log("[CombatManager] 🔗 Interface connectée")
 
 # ================================
 # GESTION DU COMBAT PRINCIPAL
@@ -226,7 +234,7 @@ func _connect_systems():
 
 ## Démarre un nouveau combat depuis les données serveur
 func start_combat_from_server(combat_data: Dictionary):
-	print("[CombatManager] 🚀 Démarrage combat depuis serveur...")
+	debug_log("[CombatManager] 🚀 Démarrage combat depuis serveur...")
 	
 	# Créer l'état de combat depuis les données serveur
 	current_combat_state = CombatState.from_server_data(combat_data)
@@ -241,12 +249,12 @@ func start_combat_from_server(combat_data: Dictionary):
 	_start_placement_phase()
 	
 	combat_started.emit(current_combat_state)
-	print("[CombatManager] ✅ Combat démarré - ID: ", current_combat_id)
+	debug_log("[CombatManager] ✅ Combat démarré - ID: ", current_combat_id)
 
 ## Crée un état de combat minimal pour la phase de placement
 func _create_minimal_combat_state_for_placement():
 	"""Crée un état de combat minimal quand pas de données serveur"""
-	print("[CombatManager] 🔧 Création état de combat minimal pour placement")
+	debug_log("[CombatManager] 🔧 Création état de combat minimal pour placement")
 	
 	current_combat_state = CombatState.new()
 	current_combat_state.id = "local_combat_" + str(Time.get_unix_time_from_system())
@@ -278,12 +286,12 @@ func _create_minimal_combat_state_for_placement():
 	if combat_ui:
 		combat_ui.update_from_combat_state(current_combat_state)
 	
-	print("[CombatManager] ✅ État de combat minimal créé")
+	debug_log("[CombatManager] ✅ État de combat minimal créé")
 
 ## Démarre la phase de placement style Dofus
 func _start_placement_phase():
 	"""Démarre la phase de placement où les joueurs choisissent leurs positions"""
-	print("[CombatManager] 🎯 === PHASE DE PLACEMENT DOFUS ===")
+	debug_log("[CombatManager] 🎯 === PHASE DE PLACEMENT DOFUS ===")
 	
 	# 1. Créer l'effet de transition
 	_create_transition_effect()
@@ -303,7 +311,7 @@ func _start_placement_phase():
 	# 6. Positionner les monstres (mais pas le joueur)
 	_place_monsters_only()
 	
-	print("[CombatManager] ✅ Phase de placement initiée - Joueur peut choisir sa position")
+	debug_log("[CombatManager] ✅ Phase de placement initiée - Joueur peut choisir sa position")
 
 ## Affiche la grille avec les zones de placement visibles
 func _show_placement_grid():
@@ -311,7 +319,7 @@ func _show_placement_grid():
 	if combat_grid:
 		combat_grid.show_grid()
 		# Forcer l'affichage des zones de placement APRÈS que la grille soit visible
-		print("[CombatManager] 🎯 Affichage grille et création zones de placement...")
+		debug_log("[CombatManager] 🎯 Affichage grille et création zones de placement...")
 		combat_grid._create_default_dofus_placement_zones()
 		
 		# DOUBLE VÉRIFICATION: Re-forcer l'affichage si nécessaire
@@ -321,7 +329,7 @@ func _show_placement_grid():
 		# TRIPLE VÉRIFICATION: Marquer que les zones ne doivent pas être écrasées
 		combat_grid._preserve_local_placement_zones()
 		
-		print("[CombatManager] ✅ Grille de placement affichée avec zones bleu/rouge FORCÉES et PROTÉGÉES")
+		debug_log("[CombatManager] ✅ Grille de placement affichée avec zones bleu/rouge FORCÉES et PROTÉGÉES")
 
 ## Affiche l'interface spécifique à la phase de placement
 func _show_placement_interface():
@@ -339,24 +347,24 @@ func _show_placement_interface():
 			# Créer un état minimal pour le timer
 			_create_minimal_combat_state_for_placement()
 		
-		print("[CombatManager] ✅ Interface de placement affichée avec timer")
+		debug_log("[CombatManager] ✅ Interface de placement affichée avec timer")
 
 ## Place uniquement les monstres, pas le joueur
 func _place_monsters_only():
 	"""Place les monstres selon les données du serveur (combattants)"""
-	print("[CombatManager] 🐲 === PLACEMENT DES MONSTRES ===")
+	debug_log("[CombatManager] 🐲 === PLACEMENT DES MONSTRES ===")
 	
 	if not combat_grid:
-		print("[CombatManager] ❌ Grille de combat non disponible")
+		debug_log("[CombatManager] ❌ Grille de combat non disponible")
 		return
 		
 	if not current_combat_state:
-		print("[CombatManager] ❌ État de combat non disponible")
+		debug_log("[CombatManager] ❌ État de combat non disponible")
 		return
 		
 	var grid_width = combat_grid.grid_width
 	var grid_height = combat_grid.grid_height
-	print("[CombatManager] 📏 Dimensions grille: %dx%d" % [grid_width, grid_height])
+	debug_log("[CombatManager] 📏 Dimensions grille: %dx%d" % [grid_width, grid_height])
 	
 	# Utiliser les combattants du serveur au lieu des monstres locaux
 	var monster_combatants = []
@@ -364,10 +372,10 @@ func _place_monsters_only():
 		if not combatant.is_player:
 			monster_combatants.append(combatant)
 	
-	print("[CombatManager] 🎯 %d monstres combattants trouvés dans l'état de combat" % monster_combatants.size())
+	debug_log("[CombatManager] 🎯 %d monstres combattants trouvés dans l'état de combat" % monster_combatants.size())
 	
 	if monster_combatants.is_empty():
-		print("[CombatManager] ⚠️ Aucun monstre combattant dans l'état de combat")
+		debug_log("[CombatManager] ⚠️ Aucun monstre combattant dans l'état de combat")
 		return
 	
 	# NOUVEAU: Utiliser UNIQUEMENT les zones ennemies du serveur (JSON config ou default)
@@ -380,13 +388,13 @@ func _place_monsters_only():
 				# Ajouter toutes les positions disponibles (pas de filtre libre)
 				available_enemy_positions.append(pos)
 	else:
-		print("[CombatManager] ⚠️ Aucune zone ennemie définie par le serveur, utilisation fallback")
+		debug_log("[CombatManager] ⚠️ Aucune zone ennemie définie par le serveur, utilisation fallback")
 		# Fallback: utiliser les zones bleues par défaut (gauche)
 		for y in range(grid_height):
 			for x in range(4):  # 4 colonnes à gauche
 				available_enemy_positions.append(Vector2i(x, y))
 	
-	print("[CombatManager] 🎯 %d positions ennemies disponibles (serveur)" % available_enemy_positions.size())
+	debug_log("[CombatManager] 🎯 %d positions ennemies disponibles (serveur)" % available_enemy_positions.size())
 	
 	# Mélanger les positions pour un placement aléatoire
 	available_enemy_positions.shuffle()
@@ -403,12 +411,12 @@ func _place_monsters_only():
 			# Fallback si aucune position
 			grid_pos = Vector2i(i % 4, 5 + (i / 4))
 		
-		print("[CombatManager] 🔵 Placement monstre %s aléatoirement en zone ennemie: %s" % [combatant.name, grid_pos])
+		debug_log("[CombatManager] 🔵 Placement monstre %s aléatoirement en zone ennemie: %s" % [combatant.name, grid_pos])
 		
 		# Créer ou récupérer la représentation visuelle du monstre
 		var monster_visual = _create_monster_visual_from_combatant(combatant)
 		if not monster_visual:
-			print("[CombatManager] ❌ Impossible de créer la représentation visuelle pour %s" % combatant.name)
+			debug_log("[CombatManager] ❌ Impossible de créer la représentation visuelle pour %s" % combatant.name)
 			continue
 			
 		# Calculer position monde
@@ -419,15 +427,15 @@ func _place_monsters_only():
 		monster_visual.visible = true
 		monster_visual.z_index = 1000  # Premier plan absolu (même niveau que joueur)
 		
-		print("[CombatManager] 🎭 Monstre placé au premier plan - z_index: 1000")
+		debug_log("[CombatManager] 🎭 Monstre placé au premier plan - z_index: 1000")
 		
 		# Marquer la cellule comme occupée
 		combat_grid.set_cell_occupied(grid_pos, str(combatant.character_id))
 		combat_grid.set_cell_state(grid_pos, combat_grid.CellState.OCCUPIED_ENEMY)
 		
-		print("[CombatManager] ✅ Monstre '%s' placé: Grille%s -> Monde%s" % [combatant.name, grid_pos, world_pos])
+		debug_log("[CombatManager] ✅ Monstre '%s' placé: Grille%s -> Monde%s" % [combatant.name, grid_pos, world_pos])
 	
-	print("[CombatManager] ✅ Placement terminé: %d monstres placés (SANS LIMITE)" % monster_combatants.size())
+	debug_log("[CombatManager] ✅ Placement terminé: %d monstres placés (SANS LIMITE)" % monster_combatants.size())
 
 ## Crée une représentation visuelle d'un monstre à partir des données combattant
 func _create_monster_visual_from_combatant(combatant) -> Node2D:
@@ -438,7 +446,7 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 		for monster_id in game_manager.monsters.keys():
 			var existing_monster = game_manager.monsters[monster_id]
 			if existing_monster and existing_monster.monster_name == combatant.name:
-				print("[CombatManager] 🔄 Réutilisation du monstre existant: %s" % combatant.name)
+				debug_log("[CombatManager] 🔄 Réutilisation du monstre existant: %s" % combatant.name)
 				
 				# SYSTÈME RE-PARENTAGE: Si le monstre existe déjà sur la map, le re-parenter
 				var combat_parent = combat_grid.get_parent()
@@ -447,27 +455,27 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 					var old_parent = existing_monster.get_parent()
 					if old_parent:
 						old_parent.remove_child(existing_monster)
-						print("[CombatManager] 🔄 Monstre détaché de: %s" % old_parent.name)
+						debug_log("[CombatManager] 🔄 Monstre détaché de: %s" % old_parent.name)
 					
 					# Rattacher au parent de combat visible
 					combat_parent.add_child(existing_monster)
 					existing_monster.visible = true
-					print("[CombatManager] ✅ Monstre re-parenté vers la scène de combat visible")
+					debug_log("[CombatManager] ✅ Monstre re-parenté vers la scène de combat visible")
 				
 				return existing_monster
 	
 	# Créer un nouveau nœud monstre simple si nécessaire
-	print("[CombatManager] 🆕 Création d'un nouveau monstre visuel: %s" % combatant.name)
+	debug_log("[CombatManager] 🆕 Création d'un nouveau monstre visuel: %s" % combatant.name)
 	
 	# Essayer de charger le template Monster
 	var monster_scene = preload("res://game/monsters/Monster.tscn")
 	if not monster_scene:
-		print("[CombatManager] ❌ Scene Monster.tscn introuvable")
+		debug_log("[CombatManager] ❌ Scene Monster.tscn introuvable")
 		return null
 		
 	var monster_node = monster_scene.instantiate()
 	if not monster_node:
-		print("[CombatManager] ❌ Impossible d'instancier Monster.tscn")
+		debug_log("[CombatManager] ❌ Impossible d'instancier Monster.tscn")
 		return null
 	
 	# Configurer le monstre
@@ -478,9 +486,9 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 	var combat_parent = combat_grid.get_parent()
 	if combat_parent:
 		combat_parent.add_child(monster_node)
-		print("[CombatManager] ✅ Monstre ajouté à la scène de combat")
+		debug_log("[CombatManager] ✅ Monstre ajouté à la scène de combat")
 	else:
-		print("[CombatManager] ❌ Parent de combat_grid introuvable")
+		debug_log("[CombatManager] ❌ Parent de combat_grid introuvable")
 		monster_node.queue_free()
 		return null
 	
@@ -489,11 +497,11 @@ func _create_monster_visual_from_combatant(combatant) -> Node2D:
 ## Confirme le placement et démarre le combat
 func confirm_placement():
 	"""Appelé quand le joueur appuie sur le bouton Prêt"""
-	print("[CombatManager] ✅ Placement confirmé - Démarrage du combat")
+	debug_log("[CombatManager] ✅ Placement confirmé - Démarrage du combat")
 	
 	# Vérifier que le joueur est bien placé
 	if not _is_player_placed_correctly():
-		print("[CombatManager] ❌ Joueur mal placé - doit être dans la zone rouge")
+		debug_log("[CombatManager] ❌ Joueur mal placé - doit être dans la zone rouge")
 		return
 	
 	# NOUVEAU: Notifier le serveur que le placement est terminé
@@ -524,13 +532,13 @@ func _is_player_placed_correctly() -> bool:
 			if cell_data["occupied_by"] == "player":
 				# Vérifier si c'est dans la zone rouge (côté droit)
 				if x >= combat_grid.grid_width - 4:
-					print("[CombatManager] ✅ Joueur correctement placé dans la zone rouge")
+					debug_log("[CombatManager] ✅ Joueur correctement placé dans la zone rouge")
 					return true
 				else:
-					print("[CombatManager] ❌ Joueur dans la mauvaise zone")
+					debug_log("[CombatManager] ❌ Joueur dans la mauvaise zone")
 					return false
 	
-	print("[CombatManager] ❌ Joueur non trouvé sur la grille")
+	debug_log("[CombatManager] ❌ Joueur non trouvé sur la grille")
 	return false
 
 ## Démarre le combat après la phase de placement
@@ -568,7 +576,7 @@ func _start_combat_transition():
 
 func _create_transition_effect():
 	"""Crée l'effet de transition visuel"""
-	print("[CombatManager] ✨ Création effet de transition...")
+	debug_log("[CombatManager] ✨ Création effet de transition...")
 	
 	# Créer un overlay noir pour la transition
 	var transition_overlay = ColorRect.new()
@@ -588,7 +596,7 @@ func _create_transition_effect():
 
 func _on_transition_mid_point():
 	"""Appelé au milieu de la transition - moment de la téléportation"""
-	print("[CombatManager] 🎯 Milieu de transition - Téléportation...")
+	debug_log("[CombatManager] 🎯 Milieu de transition - Téléportation...")
 	
 	# Masquer la carte du monde
 	_hide_world_map()
@@ -601,7 +609,7 @@ func _on_transition_mid_point():
 
 func _on_transition_complete(transition_overlay: ColorRect):
 	"""Appelé à la fin de la transition"""
-	print("[CombatManager] ✅ Transition terminée")
+	debug_log("[CombatManager] ✅ Transition terminée")
 	
 	# Supprimer l'overlay de transition
 	if transition_overlay:
@@ -615,15 +623,15 @@ func _on_transition_complete(transition_overlay: ColorRect):
 
 func _hide_world_map():
 	"""Masque la carte du monde pendant le combat"""
-	print("[CombatManager] 🗺️ Masquage de la carte du monde...")
+	debug_log("[CombatManager] 🗺️ Masquage de la carte du monde...")
 	
 	if game_manager and game_manager.current_map:
 		game_manager.current_map.visible = false
-		print("[CombatManager] ✅ Carte masquée")
+		debug_log("[CombatManager] ✅ Carte masquée")
 
 func _center_camera_on_combat():
 	"""Centre la caméra sur la zone de combat en conservant la position du joueur"""
-	print("[CombatManager] 📷 Centrage caméra sur combat...")
+	debug_log("[CombatManager] 📷 Centrage caméra sur combat...")
 	
 	# CORRECTION: Ne pas forcer le centrage de la caméra pour conserver la position relative
 	# La caméra doit suivre le joueur normalement
@@ -634,19 +642,19 @@ func _center_camera_on_combat():
 		# Centrer la caméra sur la position du joueur au lieu du centre de l'écran
 		var player_pos = game_manager.current_player.global_position
 		camera.global_position = player_pos
-		print("[CombatManager] ✅ Caméra centrée sur le joueur à: ", player_pos)
+		debug_log("[CombatManager] ✅ Caméra centrée sur le joueur à: ", player_pos)
 	
 	# CORRECTION: Ne pas forcer le centrage de la grille pour conserver les positions relatives
 	# La grille doit rester à sa position naturelle par rapport à la carte
 	if combat_grid:
-		print("[CombatManager] ✅ Grille conserve sa position naturelle (pas de recentrage forcé)")
+		debug_log("[CombatManager] ✅ Grille conserve sa position naturelle (pas de recentrage forcé)")
 
 func _teleport_entities_to_grid():
 	"""Téléporte le joueur et les monstres sur la grille de combat"""
-	print("[CombatManager] 🌀 Téléportation des entités sur la grille...")
+	debug_log("[CombatManager] 🌀 Téléportation des entités sur la grille...")
 	
 	if not combat_grid:
-		print("[CombatManager] ⚠️ Grille de combat non disponible")
+		debug_log("[CombatManager] ⚠️ Grille de combat non disponible")
 		return
 	
 	# Obtenir les dimensions adaptatives de la grille
@@ -664,8 +672,8 @@ func _teleport_entities_to_grid():
 	# CORRECTION: Ne pas téléporter le joueur automatiquement en phase de placement
 	# Le joueur doit rester à sa position actuelle et pourra se placer manuellement
 	if game_manager and game_manager.current_player:
-		print("[CombatManager] 👤 Joueur conserve sa position actuelle pendant la phase de placement")
-		print("[CombatManager] 📍 Position actuelle du joueur: ", game_manager.current_player.global_position)
+		debug_log("[CombatManager] 👤 Joueur conserve sa position actuelle pendant la phase de placement")
+		debug_log("[CombatManager] 📍 Position actuelle du joueur: ", game_manager.current_player.global_position)
 		
 		# Faire regarder le joueur vers les monstres (vers la gauche) mais sans le déplacer
 		var player = game_manager.current_player
@@ -674,7 +682,7 @@ func _teleport_entities_to_grid():
 		elif player.sprite and player.sprite is Sprite2D:
 			player.sprite.flip_h = true  # Miroir (face à gauche)
 		
-		print("[CombatManager] ✅ Orientation du joueur ajustée pour le combat")
+		debug_log("[CombatManager] ✅ Orientation du joueur ajustée pour le combat")
 	
 	# Téléporter les monstres (zone BLEUE - position ennemie côté gauche)
 	if game_manager and game_manager.monsters:
@@ -688,7 +696,7 @@ func _teleport_entities_to_grid():
 				var monster_world_pos = combat_grid.grid_to_screen(adjusted_pos) + combat_grid.global_position
 				monster.global_position = monster_world_pos
 				
-				print("[CombatManager] 🔵 Monstre placé en zone BLEUE: ", adjusted_pos)
+				debug_log("[CombatManager] 🔵 Monstre placé en zone BLEUE: ", adjusted_pos)
 				
 				# Faire regarder le monstre vers le joueur (vers la droite)
 				if monster.has_method("set_facing_direction"):
@@ -701,22 +709,22 @@ func _teleport_entities_to_grid():
 					if sprite_node and sprite_node is Sprite2D:
 						sprite_node.flip_h = false  # Normal (face à droite vers joueur)
 				
-				print("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone bleue Dofus")
+				debug_log("[CombatManager] ✅ Monstre téléporté à: ", monster_world_pos, " (grille: ", adjusted_pos, ") - Zone bleue Dofus")
 				monster_count += 1
 				# SUPPRESSION LIMITE 3 MONSTRES: Continuer avec tous les monstres
 
 func _finish_transition():
 	"""Finalise la transition"""
-	print("[CombatManager] 🎉 Finalisation de la transition...")
+	debug_log("[CombatManager] 🎉 Finalisation de la transition...")
 	
 	# Ici on peut ajouter des effets sonores, particles, etc.
 	# Pour l'instant, juste un log
-	print("[CombatManager] ✅ Transition combat style Dofus terminée !")
+	debug_log("[CombatManager] ✅ Transition combat style Dofus terminée !")
 
 ## Met à jour l'état de combat depuis le serveur
 func update_combat_state(new_combat_data: Dictionary):
 	if not is_combat_active:
-		print("[CombatManager] ⚠️ Pas de combat actif - Mise à jour ignorée")
+		debug_log("[CombatManager] ⚠️ Pas de combat actif - Mise à jour ignorée")
 		return
 	
 	# Mettre à jour l'état depuis les données serveur
@@ -725,21 +733,21 @@ func update_combat_state(new_combat_data: Dictionary):
 	# Mettre à jour tous les systèmes
 	_update_all_systems()
 	
-	print("[CombatManager] 🔄 État de combat mis à jour depuis serveur")
+	debug_log("[CombatManager] 🔄 État de combat mis à jour depuis serveur")
 
 ## Callback pour les mises à jour de combat du serveur
 func _on_combat_update_from_server(update_data: Dictionary):
-	print("[CombatManager] 📡 Mise à jour de combat reçue du serveur")
+	debug_log("[CombatManager] 📡 Mise à jour de combat reçue du serveur")
 	update_combat_state(update_data)
 
 ## Callback pour les réponses d'action de combat
 func _on_combat_action_response(response_data: Dictionary):
-	print("[CombatManager] 📡 Réponse d'action de combat reçue: ", response_data)
+	debug_log("[CombatManager] 📡 Réponse d'action de combat reçue: ", response_data)
 	# TODO: Traiter la réponse selon le type d'action
 
 ## Callback pour la fin de combat
 func _on_combat_ended_from_server(end_data: Dictionary):
-	print("[CombatManager] 📡 Fin de combat reçue du serveur")
+	debug_log("[CombatManager] 📡 Fin de combat reçue du serveur")
 	var result_data = {}
 	if end_data.has("winner"):
 		result_data["winner"] = end_data.winner
@@ -762,21 +770,21 @@ func _update_all_systems():
 	if combat_ui:
 		combat_ui.update_from_combat_state(current_combat_state)
 	
-	print("[CombatManager] 🔄 Tous les systèmes mis à jour")
+	debug_log("[CombatManager] 🔄 Tous les systèmes mis à jour")
 
 ## Affiche l'interface de combat
 func _show_combat_interface():
 	if combat_ui:
 		combat_ui.show_combat_ui()
-		print("[CombatManager] 👁️ Interface de combat affichée")
+		debug_log("[CombatManager] 👁️ Interface de combat affichée")
 
 	if combat_grid:
 		combat_grid.show_grid()
-		print("[CombatManager] 🗺️ Grille de combat affichée")
+		debug_log("[CombatManager] 🗺️ Grille de combat affichée")
 
 ## Termine le combat (méthode publique pour tests)
 func end_combat(result_data: Dictionary = {}):
-	print("[CombatManager] 🏁 Fin du combat (demandée)")
+	debug_log("[CombatManager] 🏁 Fin du combat (demandée)")
 	_end_combat_with_result(result_data)
 
 ## Termine le combat et nettoie les ressources
@@ -785,7 +793,7 @@ func _end_combat():
 
 ## Implémentation interne de fin de combat avec résultat personnalisé
 func _end_combat_with_result(result_data: Dictionary):
-	print("[CombatManager] 🏁 Fin du combat")
+	debug_log("[CombatManager] 🏁 Fin du combat")
 	
 	is_combat_active = false
 	var status_str = "UNKNOWN"
@@ -820,7 +828,7 @@ func _start_exit_combat_transition():
 
 func _create_exit_transition_effect():
 	"""Crée l'effet de transition de sortie"""
-	print("[CombatManager] ✨ Création effet de sortie...")
+	debug_log("[CombatManager] ✨ Création effet de sortie...")
 	
 	# Créer un overlay noir pour la transition
 	var transition_overlay = ColorRect.new()
@@ -840,7 +848,7 @@ func _create_exit_transition_effect():
 
 func _on_exit_transition_mid_point():
 	"""Appelé au milieu de la transition de sortie"""
-	print("[CombatManager] 🎯 Milieu transition sortie - Restauration monde...")
+	debug_log("[CombatManager] 🎯 Milieu transition sortie - Restauration monde...")
 	
 	# Masquer l'interface de combat
 	if combat_ui:
@@ -860,31 +868,31 @@ func _on_exit_transition_mid_point():
 
 func _on_exit_transition_complete(transition_overlay: ColorRect):
 	"""Appelé à la fin de la transition de sortie"""
-	print("[CombatManager] ✅ Transition sortie terminée")
+	debug_log("[CombatManager] ✅ Transition sortie terminée")
 	
 	# Supprimer l'overlay de transition
 	if transition_overlay:
 		transition_overlay.queue_free()
 	
-	print("[CombatManager] 🌍 Retour au monde terminé")
+	debug_log("[CombatManager] 🌍 Retour au monde terminé")
 
 func _restore_world_map():
 	"""Restaure la visibilité de la carte du monde"""
-	print("[CombatManager] 🗺️ Restauration de la carte du monde...")
+	debug_log("[CombatManager] 🗺️ Restauration de la carte du monde...")
 	
 	if game_manager and game_manager.current_map:
 		game_manager.current_map.visible = true
-		print("[CombatManager] ✅ Carte restaurée")
+		debug_log("[CombatManager] ✅ Carte restaurée")
 
 func _restore_entities_positions():
 	"""Restaure les positions des entités dans le monde"""
-	print("[CombatManager] 🔄 Restauration positions entités...")
+	debug_log("[CombatManager] 🔄 Restauration positions entités...")
 	
 	# Restaurer la position du joueur (peut être configurée depuis le serveur)
 	if game_manager and game_manager.current_player:
 		# Pour l'instant, on garde la position actuelle
 		# Dans le futur, on pourrait restaurer la position pré-combat
-		print("[CombatManager] ✅ Position joueur maintenue")
+		debug_log("[CombatManager] ✅ Position joueur maintenue")
 	
 	# Restaurer les monstres qui ont été re-parentés
 	if game_manager and game_manager.monsters:
@@ -897,21 +905,21 @@ func _restore_entities_positions():
 					if old_parent:
 						old_parent.remove_child(monster)
 					game_manager.current_map.add_child(monster)
-					print("[CombatManager] 🔄 Monstre %s re-parenté vers la map" % monster.monster_name)
+					debug_log("[CombatManager] 🔄 Monstre %s re-parenté vers la map" % monster.monster_name)
 				
 				# Si le monstre est mort en combat, le détruire
 				if not monster.is_alive:
 					game_manager.monsters.erase(monster_id)
 					monster.queue_free()
-					print("[CombatManager] 💀 Monstre %s détruit car mort en combat" % monster.monster_name)
+					debug_log("[CombatManager] 💀 Monstre %s détruit car mort en combat" % monster.monster_name)
 				else:
 					# Sinon, repositionner le monstre à sa position d'origine si possible
 					if monster.monster_data.has("original_pos_x") and monster.monster_data.has("original_pos_y"):
 						monster.global_position = Vector2(monster.monster_data.original_pos_x, monster.monster_data.original_pos_y)
-						print("[CombatManager] 📍 Monstre %s repositionné à sa position d'origine" % monster.monster_name)
+						debug_log("[CombatManager] 📍 Monstre %s repositionné à sa position d'origine" % monster.monster_name)
 					monster.visible = true
 	
-	print("[CombatManager] ✅ Positions restaurées")
+	debug_log("[CombatManager] ✅ Positions restaurées")
 
 # ================================
 # SYNCHRONISATION PLACEMENT SERVEUR
@@ -920,10 +928,10 @@ func _restore_entities_positions():
 ## Envoie un message au serveur pour confirmer le placement terminé
 func _send_placement_done_to_server():
 	"""Notifie le serveur que le joueur a terminé son placement"""
-	print("[CombatManager] 📤 Envoi confirmation placement au serveur...")
+	debug_log("[CombatManager] 📤 Envoi confirmation placement au serveur...")
 	
 	if not websocket_manager:
-		print("[CombatManager] ⚠️ WebSocketManager non disponible - Placement non synchronisé")
+		debug_log("[CombatManager] ⚠️ WebSocketManager non disponible - Placement non synchronisé")
 		return
 	
 	# Obtenir la position finale du joueur
@@ -944,12 +952,12 @@ func _send_placement_done_to_server():
 	# Envoyer via WebSocket
 	if websocket_manager.has_method("send_combat_message"):
 		websocket_manager.send_combat_message(placement_data)
-		print("[CombatManager] ✅ Confirmation placement envoyée: ", placement_data)
+		debug_log("[CombatManager] ✅ Confirmation placement envoyée: ", placement_data)
 	elif websocket_manager.has_method("send_message"):
 		websocket_manager.send_message(placement_data)
-		print("[CombatManager] ✅ Confirmation placement envoyée (méthode générique): ", placement_data)
+		debug_log("[CombatManager] ✅ Confirmation placement envoyée (méthode générique): ", placement_data)
 	else:
-		print("[CombatManager] ⚠️ Méthode d'envoi WebSocket non trouvée")
+		debug_log("[CombatManager] ⚠️ Méthode d'envoi WebSocket non trouvée")
 
 ## Obtient la position grille actuelle du joueur
 func _get_player_grid_position() -> Vector2i:
@@ -980,7 +988,7 @@ func _get_local_player_id() -> String:
 
 ## Gestionnaire des clics sur la grille
 func _on_grid_cell_clicked(grid_pos: Vector2i, action_type: CombatState.ActionType, action_data: Dictionary):
-	print("[CombatManager] 🎯 Clic grille: ", grid_pos, " - Action: ", action_type)
+	debug_log("[CombatManager] 🎯 Clic grille: ", grid_pos, " - Action: ", action_type)
 	
 	# Valider que c'est le tour du joueur
 	if not _is_player_turn():
@@ -1004,7 +1012,7 @@ func _on_grid_cell_clicked(grid_pos: Vector2i, action_type: CombatState.ActionTy
 
 ## Gestionnaire des actions demandées par l'UI
 func _on_ui_action_requested(action_type: CombatState.ActionType, action_data: Dictionary):
-	print("[CombatManager] 🎛️ Action UI: ", action_type)
+	debug_log("[CombatManager] 🎛️ Action UI: ", action_type)
 	
 	# Mettre à jour l'action courante sur la grille
 	if combat_grid:
@@ -1021,7 +1029,7 @@ func _on_ui_action_requested(action_type: CombatState.ActionType, action_data: D
 
 ## Gestionnaire des actions invalides sur la grille
 func _on_grid_invalid_action(reason: String):
-	print("[CombatManager] ❌ Action invalide: ", reason)
+	debug_log("[CombatManager] ❌ Action invalide: ", reason)
 	action_rejected.emit(reason)
 
 ## Vérifie si c'est le tour du joueur local
@@ -1038,7 +1046,7 @@ func _is_player_turn() -> bool:
 
 ## Envoie une action au serveur
 func _send_action_to_server(action_data: Dictionary):
-	print("[CombatManager] 📤 Envoi action au serveur: ", action_data)
+	debug_log("[CombatManager] 📤 Envoi action au serveur: ", action_data)
 	
 	# Ajouter à la liste des actions en attente
 	pending_actions.append(action_data)
@@ -1047,7 +1055,7 @@ func _send_action_to_server(action_data: Dictionary):
 	if websocket_manager and websocket_manager.has_method("send_combat_action"):
 		websocket_manager.send_combat_action(action_data)
 	else:
-		print("[CombatManager] ⚠️ WebSocketManager non disponible - Action mise en attente")
+		debug_log("[CombatManager] ⚠️ WebSocketManager non disponible - Action mise en attente")
 	
 	action_validated.emit(action_data)
 
@@ -1063,12 +1071,12 @@ func trigger_spell_visual_effect(caster_id: String, target_pos: Vector2, spell_n
 	# Trouver le combattant qui lance le sort
 	var caster = current_combat_state.get_combatant_by_id(caster_id)
 	if not caster:
-		print("[CombatManager] ⚠️ Lanceur de sort non trouvé: %s" % caster_id)
+		debug_log("[CombatManager] ⚠️ Lanceur de sort non trouvé: %s" % caster_id)
 		return
 	
 	var caster_pos = Vector2(caster.pos_x, caster.pos_y)
 	visual_effects_manager.play_spell_cast_effect(caster_pos, target_pos, spell_name)
-	print("[CombatManager] ✨ Effet visuel sort lancé: %s" % spell_name)
+	debug_log("[CombatManager] ✨ Effet visuel sort lancé: %s" % spell_name)
 
 ## Affiche des dégâts/soins sur une position
 func trigger_damage_visual_effect(position: Vector2, value: int, damage_type: String = "damage"):
@@ -1076,7 +1084,7 @@ func trigger_damage_visual_effect(position: Vector2, value: int, damage_type: St
 		return
 	
 	visual_effects_manager.show_damage_text(position, value, damage_type)
-	print("[CombatManager] 💥 Effet visuel dégâts: %s" % value)
+	debug_log("[CombatManager] 💥 Effet visuel dégâts: %s" % value)
 
 ## Affiche un effet temporaire sur un combattant
 func trigger_temporary_effect_visual(combatant_id: String, effect: CombatState.TemporaryEffect):
@@ -1086,18 +1094,18 @@ func trigger_temporary_effect_visual(combatant_id: String, effect: CombatState.T
 	# Trouver le combattant
 	var combatant = current_combat_state.get_combatant_by_id(combatant_id)
 	if not combatant:
-		print("[CombatManager] ⚠️ Combattant non trouvé pour effet: %s" % combatant_id)
+		debug_log("[CombatManager] ⚠️ Combattant non trouvé pour effet: %s" % combatant_id)
 		return
 	
 	var combatant_pos = Vector2(combatant.pos_x, combatant.pos_y)
 	visual_effects_manager.show_temporary_effect(combatant_pos, effect)
-	print("[CombatManager] 🔮 Effet temporaire affiché: %s" % effect.type)
+	debug_log("[CombatManager] 🔮 Effet temporaire affiché: %s" % effect.type)
 
 ## Nettoie tous les effets visuels (fin de combat)
 func clear_visual_effects():
 	if visual_effects_manager:
 		visual_effects_manager.clear_all_effects()
-		print("[CombatManager] 🧹 Effets visuels nettoyés")
+		debug_log("[CombatManager] 🧹 Effets visuels nettoyés")
 
 ## Détecte les changements entre états et déclenche les effets visuels
 func _detect_and_trigger_visual_effects(old_state: CombatState, new_state: CombatState):
@@ -1133,7 +1141,7 @@ func _detect_and_trigger_visual_effects(old_state: CombatState, new_state: Comba
 			if not effect_existed:
 				trigger_temporary_effect_visual(new_combatant.character_id, new_effect)
 	
-	print("[CombatManager] 🔍 Effets visuels détectés et déclenchés")
+	debug_log("[CombatManager] 🔍 Effets visuels détectés et déclenchés")
 
 # ================================
 # MÉTHODES DE TEST LOCAL (DEBUG)
@@ -1142,7 +1150,7 @@ func _detect_and_trigger_visual_effects(old_state: CombatState, new_state: Comba
 ## Démarre un combat de test localement (pour debug sans serveur)
 func start_test_combat():
 	"""Démarre un combat de test localement"""
-	print("[CombatManager] 🧪 === DÉMARRAGE COMBAT DE TEST ===")
+	debug_log("[CombatManager] 🧪 === DÉMARRAGE COMBAT DE TEST ===")
 	
 	# Créer des données de combat fictives
 	var test_combat_data = {
@@ -1156,7 +1164,7 @@ func start_test_combat():
 	# Démarrer le combat avec ces données
 	start_combat_from_server(test_combat_data)
 	
-	print("[CombatManager] 🧪 Combat de test démarré - Mode debug sans serveur")
+	debug_log("[CombatManager] 🧪 Combat de test démarré - Mode debug sans serveur")
 
 # ================================
 # MÉTHODES UTILITAIRES
@@ -1176,15 +1184,15 @@ func refresh_display():
 
 ## Affiche les informations de debug
 func debug_print_state():
-	print("[CombatManager] === ÉTAT DU COMBAT ===")
-	print("Combat actif: ", is_combat_active)
-	print("Combat ID: ", current_combat_id)
-	print("Map ID: ", current_map_id)
+	debug_log("[CombatManager] === ÉTAT DU COMBAT ===")
+	debug_log("Combat actif: ", is_combat_active)
+	debug_log("Combat ID: ", current_combat_id)
+	debug_log("Map ID: ", current_map_id)
 	
 	if current_combat_state:
-		print("Phase: ", current_combat_state.status)
-		print("Combattants: ", current_combat_state.combatants.size())
-		print("Tour actuel: ", current_combat_state.current_turn_index)
+		debug_log("Phase: ", current_combat_state.status)
+		debug_log("Combattants: ", current_combat_state.combatants.size())
+		debug_log("Tour actuel: ", current_combat_state.current_turn_index)
 	
-	print("Actions en attente: ", pending_actions.size())
-	print("==============================") 
+	debug_log("Actions en attente: ", pending_actions.size())
+	debug_log("==============================") 
