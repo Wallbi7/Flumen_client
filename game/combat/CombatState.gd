@@ -206,8 +206,8 @@ var turn_time_limit: float = 30.0     # Limite de temps par tour (30s comme Dofu
 ## === GRILLE DE COMBAT ===
 var grid_width: int = 15
 var grid_height: int = 17
-var ally_placement_cells: Array[Vector2i] = []
-var enemy_placement_cells: Array[Vector2i] = []
+var ally_placement_cells: Array = []
+var enemy_placement_cells: Array = []
 
 ## === MÉTADONNÉES ===
 var created_at: String
@@ -257,14 +257,32 @@ static func from_server_data(data: Dictionary) -> CombatState:
 		combat_state.grid_width = data.grid_width
 	if data.has("grid_height"):
 		combat_state.grid_height = data.grid_height
-	if data.has("ally_placement_cells"):
+	
+	# Conversion des zones serveur vers format client
+	if data.has("ally_start_zone") and data.ally_start_zone is Array:
+		combat_state.ally_placement_cells = []
+		for cell_data in data.ally_start_zone:
+			if cell_data is Dictionary and cell_data.has("x") and cell_data.has("y"):
+				combat_state.ally_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
+		print("[CombatState] Zones alliées converties: ", combat_state.ally_placement_cells.size(), " cellules")
+	elif data.has("ally_placement_cells") and data.ally_placement_cells is Array:
 		combat_state.ally_placement_cells = []
 		for cell_data in data.ally_placement_cells:
-			combat_state.ally_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
-	if data.has("enemy_placement_cells"):
+			if cell_data is Dictionary and cell_data.has("x") and cell_data.has("y"):
+				combat_state.ally_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
+	
+	# Zones ennemies avec conversion serveur
+	if data.has("enemy_start_zone") and data.enemy_start_zone is Array:
+		combat_state.enemy_placement_cells = []
+		for cell_data in data.enemy_start_zone:
+			if cell_data is Dictionary and cell_data.has("x") and cell_data.has("y"):
+				combat_state.enemy_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
+		print("[CombatState] Zones ennemies converties: ", combat_state.enemy_placement_cells.size(), " cellules")
+	elif data.has("enemy_placement_cells") and data.enemy_placement_cells is Array:
 		combat_state.enemy_placement_cells = []
 		for cell_data in data.enemy_placement_cells:
-			combat_state.enemy_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
+			if cell_data is Dictionary and cell_data.has("x") and cell_data.has("y"):
+				combat_state.enemy_placement_cells.append(Vector2i(cell_data.x, cell_data.y))
 	
 	# Métadonnées
 	if data.has("created_at"):

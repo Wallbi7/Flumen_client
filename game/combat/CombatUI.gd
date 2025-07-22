@@ -157,11 +157,15 @@ func update_from_combat_state(combat_state: CombatState):
 	update_effects_display()
 	update_spell_bar_display()
 	
-	# Démarrer/arrêter le timer selon l'état
-	if combat_state.status == CombatState.CombatStatus.IN_PROGRESS:
+	# Démarrer le timer dès que le combat commence (placement ou combat)
+	if combat_state.status == CombatState.CombatStatus.IN_PROGRESS or combat_state.status == CombatState.CombatStatus.PLACEMENT:
+		if not timer_update_timer.timeout.is_connected(_on_timer_update):
+			timer_update_timer.timeout.connect(_on_timer_update)
 		timer_update_timer.start()
+		print("[CombatUI] ⏰ Timer démarré pour phase: ", combat_state.status)
 	else:
 		timer_update_timer.stop()
+		print("[CombatUI] ⏸️ Timer arrêté pour phase: ", combat_state.status)
 
 ## Trouve le combattant correspondant au joueur local
 func _find_local_player_combatant() -> CombatState.Combatant:
@@ -506,7 +510,34 @@ func update_timer_display(remaining_time: float):
 ## Gestionnaire du timer de mise à jour
 func _on_timer_update():
 	if current_combat_state:
-		update_timer_display(current_combat_state.get_remaining_turn_time())
+		# Utiliser le temps du serveur si disponible, sinon utiliser un timer simple
+		var remaining_time = current_combat_state.get_remaining_turn_time()
+		if remaining_time <= 0:
+			# Fallback: timer simple 30 secondes par défaut
+			remaining_time = _get_simple_timer_fallback()
+		update_timer_display(remaining_time)
+
+## Système de timer de fallback simple quand le serveur ne répond pas
+var _simple_timer_start_time: float = 0
+var _simple_timer_duration: float = 30.0  # 30 secondes par défaut
+
+func _get_simple_timer_fallback() -> float:
+	"""Retourne un timer simple quand le serveur ne fournit pas de temps"""
+	# Initialiser le timer si pas déjà fait
+	if _simple_timer_start_time == 0:
+		_simple_timer_start_time = Time.get_unix_time_from_system()
+		print("[CombatUI] ⏰ Démarrage timer simple 30s")
+	
+	var elapsed_time = Time.get_unix_time_from_system() - _simple_timer_start_time
+	var remaining = _simple_timer_duration - elapsed_time
+	
+	# Reset quand le temps est écoulé
+	if remaining <= 0:
+		_simple_timer_start_time = Time.get_unix_time_from_system()
+		remaining = _simple_timer_duration
+		print("[CombatUI] 🔄 Reset timer simple")
+	
+	return remaining
 
 # ================================
 # GESTIONNAIRES D'ÉVÉNEMENTS
@@ -550,18 +581,65 @@ func _on_end_turn_button_pressed():
 func _on_ready_button_pressed():
 	print("[CombatUI] ✅ Bouton Prêt pressé - Joueur prêt pour commencer le combat")
 	
-	# Appeler directement le CombatManager pour confirmer le placement
-	var combat_manager = get_node_or_null("/root/CombatManager")
-	if not combat_manager:
-		# Chercher dans la scène principale
-		var main_scene = get_tree().current_scene
-		combat_manager = main_scene.get_node_or_null("CombatManager")
+	# Méthodes multiples pour trouver CombatManager
+	var combat_manager = _find_combat_manager()
 	
 	if combat_manager and combat_manager.has_method("confirm_placement"):
+		print("[CombatUI] 🎯 CombatManager trouvé, confirmation du placement...")
 		combat_manager.confirm_placement()
 	else:
-		print("[CombatUI] ⚠️ CombatManager non trouvé")
+		print("[CombatUI] ⚠️ CombatManager non trouvé, émission du signal d'action")
 		action_requested.emit(CombatState.ActionType.READY_FOR_COMBAT, {})
+
+## Trouve le CombatManager par plusieurs méthodes
+func _find_combat_manager() -> Node:
+	"""Recherche exhaustive du CombatManager"""
+	var combat_manager = null
+	
+	# Méthode 1: Nœud racine
+	combat_manager = get_node_or_null("/root/CombatManager")
+	if combat_manager:
+		print("[CombatUI] 🔍 CombatManager trouvé dans /root/")
+		return combat_manager
+	
+	# Méthode 2: Scène principale
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		combat_manager = main_scene.get_node_or_null("CombatManager")
+		if combat_manager:
+			print("[CombatUI] 🔍 CombatManager trouvé dans scène principale")
+			return combat_manager
+	
+	# Méthode 3: Via GameManager
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.has("combat_manager"):
+		combat_manager = game_manager.combat_manager
+		if combat_manager:
+			print("[CombatUI] 🔍 CombatManager trouvé via GameManager")
+			return combat_manager
+	
+	# Méthode 4: Recherche récursive dans la scène
+	if main_scene:
+		combat_manager = _find_node_recursive(main_scene, "CombatManager")
+		if combat_manager:
+			print("[CombatUI] 🔍 CombatManager trouvé par recherche récursive")
+			return combat_manager
+	
+	print("[CombatUI] ❌ CombatManager introuvable par toutes les méthodes")
+	return null
+
+## Recherche récursive d'un nœud
+func _find_node_recursive(node: Node, target_name: String) -> Node:
+	"""Recherche un nœud par son nom de manière récursive"""
+	if node.name == target_name:
+		return node
+	
+	for child in node.get_children():
+		var result = _find_node_recursive(child, target_name)
+		if result:
+			return result
+	
+	return null
 
 # ================================
 # UTILITAIRES PUBLICS

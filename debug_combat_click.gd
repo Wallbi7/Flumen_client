@@ -25,34 +25,15 @@ func _input(event):
 				check_monster_interactions()
 
 func test_manual_combat():
-	print("\n[CombatClickDebug] 🧪 TEST MANUEL DE COMBAT")
+	print("\n[CombatClickDebug] 🚨 TEST MANUEL DÉSACTIVÉ - Utiliser un vrai clic droit sur un monstre")
+	print("[CombatClickDebug] ⚠️ Pour un test approprié, cliquez droit sur un monstre dans le jeu")
+	return
 	
-	var game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager:
-		print("[CombatClickDebug] ❌ GameManager non trouvé")
-		return
-	
-	# Trouver le premier monstre disponible
-	if game_manager.monsters.size() == 0:
-		print("[CombatClickDebug] ❌ Aucun monstre disponible")
-		return
-	
-	var monster_id = game_manager.monsters.keys()[0]
-	var monster = game_manager.monsters[monster_id]
-	
-	print("[CombatClickDebug] 🎯 Test avec monstre: ", monster.monster_name, " (", monster_id, ")")
-	
-	# Simuler le clic droit
-	print("[CombatClickDebug] 1. Simulation _on_monster_right_clicked...")
-	game_manager._on_monster_right_clicked(monster)
-	
-	# Attendre un peu puis simuler l'arrivée du joueur
-	await get_tree().create_timer(1.0).timeout
-	
-	print("[CombatClickDebug] 2. Simulation arrivée du joueur...")
-	if game_manager.current_player:
-		game_manager.current_player.global_position = monster.global_position + Vector2(-50, 0)
-		game_manager._on_player_reached_monster(game_manager.current_player.global_position)
+	# Code commenté pour éviter l'interférence avec le serveur
+	# var game_manager = get_node_or_null("/root/GameManager")
+	# if not game_manager:
+	#	print("[CombatClickDebug] ❌ GameManager non trouvé")
+	#	return
 
 func check_monster_interactions():
 	print("\n[CombatClickDebug] 🔍 VÉRIFICATION INTERACTIONS MONSTRES")

@@ -137,14 +137,17 @@ func update_from_combat_state(combat_state: CombatState):
 		grid_height = combat_state.grid_height
 		initialize_grid(grid_width, grid_height)
 	
+	# Mettre à jour les zones de placement selon la phase AVANT les combattants
+	_update_placement_zones()
+	
 	# Mettre à jour les positions des combattants
 	_update_combatant_positions()
 	
-	# Mettre à jour les zones de placement selon la phase
-	_update_placement_zones()
-	
 	# Mettre à jour les portées d'action selon le combattant actuel
 	_update_action_ranges()
+	
+	# Forcer la régénération visuelle pour s'assurer que les zones sont visibles
+	_generate_visual_grid()
 
 ## Trouve le combattant correspondant au joueur local
 func _find_local_player_combatant() -> CombatState.Combatant:
@@ -167,7 +170,14 @@ func _update_combatant_positions():
 				cell_data["occupied_by"] = ""
 				# Ne pas changer l'état si c'est une zone de placement
 				if cell_data["state"] == CellState.OCCUPIED_ALLY or cell_data["state"] == CellState.OCCUPIED_ENEMY:
-					cell_data["state"] = CellState.NORMAL
+					# Restaurer l'état de zone de placement si elle existe
+					if cell_data.has("placement_zone"):
+						if cell_data["placement_zone"] == "ally":
+							cell_data["state"] = CellState.PLACEMENT_ALLY
+						elif cell_data["placement_zone"] == "enemy":
+							cell_data["state"] = CellState.PLACEMENT_ENEMY
+					else:
+						cell_data["state"] = CellState.NORMAL
 	
 	# Placer tous les combattants selon leurs positions serveur
 	if current_combat_state:
@@ -175,11 +185,17 @@ func _update_combatant_positions():
 			var grid_pos = Vector2i(combatant.pos_x, combatant.pos_y)
 			if is_valid_grid_position(grid_pos):
 				set_cell_occupied(grid_pos, combatant.character_id)
-				var state = CellState.OCCUPIED_ALLY if combatant.team_id == 0 else CellState.OCCUPIED_ENEMY
-				set_cell_state(grid_pos, state)
+				var cell_data = get_cell_data(grid_pos)
+				
+				# Ne pas écraser l'état de zone de placement, juste marquer comme occupé
+				if not cell_data.has("placement_zone"):
+					var state = CellState.OCCUPIED_ALLY if combatant.team_id == 0 else CellState.OCCUPIED_ENEMY
+					set_cell_state(grid_pos, state)
+				else:
+					# Garder la zone de placement visible, mais marquer comme occupé
+					print("[CombatGrid] Combattant placé sur zone de placement: ", grid_pos, " zone=", cell_data["placement_zone"])
 	
-	# Regénérer la grille visuelle
-	_generate_visual_grid()
+	# Ne pas régénérer ici - on le fait dans update_from_server_state()
 
 ## Met à jour les zones de placement style Dofus (bleu/rouge)
 func _update_placement_zones():
@@ -188,33 +204,49 @@ func _update_placement_zones():
 		_create_default_dofus_placement_zones()
 		return
 	
-	# Afficher les zones de placement uniquement en phase PLACEMENT
-	if current_combat_state.status == CombatState.CombatStatus.PLACEMENT:
-		# Zones alliées (bleues, côté gauche)
+	# Afficher les zones de placement pendant PLACEMENT et IN_PROGRESS pour orientation
+	if current_combat_state.status == CombatState.CombatStatus.PLACEMENT or current_combat_state.status == CombatState.CombatStatus.IN_PROGRESS:
+		print("[CombatGrid] ⚡ SERVEUR - Configuration zones: Alliés=", current_combat_state.ally_placement_cells.size(), " Ennemis=", current_combat_state.enemy_placement_cells.size())
+		print("[CombatGrid] ⚡ SERVEUR - Status combat: ", current_combat_state.status)
+		
+		# Zones alliées (bleues, côté gauche) - forcer l'affichage même si occupées
 		for cell_pos in current_combat_state.ally_placement_cells:
 			if is_valid_grid_position(cell_pos):
+				var cell_data = get_cell_data(cell_pos)
+				# Forcer la zone de placement, même si occupée
+				cell_data["placement_zone"] = "ally"
 				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
+				print("[CombatGrid] ⚡ SERVEUR - Zone alliée appliquée: ", cell_pos)
 		
-		# Zones ennemies (rouges, côté droit)
+		# Zones ennemies (rouges, côté droit) - forcer l'affichage même si occupées
 		for cell_pos in current_combat_state.enemy_placement_cells:
 			if is_valid_grid_position(cell_pos):
+				var cell_data = get_cell_data(cell_pos)
+				# Forcer la zone de placement, même si occupée
+				cell_data["placement_zone"] = "enemy"
 				set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
+				print("[CombatGrid] ⚡ SERVEUR - Zone ennemie appliquée: ", cell_pos)
+	else:
+		print("[CombatGrid] ⚠️ SERVEUR - Status ne permet pas l'affichage des zones: ", current_combat_state.status)
 
-## Crée les zones de placement par défaut style Dofus
+## Crée les zones de placement par défaut style Dofus (INVERSÉ)
 func _create_default_dofus_placement_zones():
-	# Zone bleue (alliés) - côté gauche de la grille
+	# Zone bleue (ennemis déjà placés) - côté gauche de la grille  
 	for y in range(grid_height):
 		for x in range(0, min(4, grid_width)):  # 4 colonnes à gauche
 			var cell_pos = Vector2i(x, y)
 			if is_valid_grid_position(cell_pos):
-				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)
+				# Ne pas afficher comme zone de placement si déjà occupée
+				var cell_data = get_cell_data(cell_pos)
+				if cell_data["occupied_by"] == "":
+					set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)  # Bleu mais pour ennemis
 	
-	# Zone rouge (ennemis) - côté droit de la grille
+	# Zone rouge (joueur peut se placer) - côté droit de la grille
 	for y in range(grid_height):
 		for x in range(max(grid_width - 4, 0), grid_width):  # 4 colonnes à droite
 			var cell_pos = Vector2i(x, y)
 			if is_valid_grid_position(cell_pos):
-				set_cell_state(cell_pos, CellState.PLACEMENT_ENEMY)
+				set_cell_state(cell_pos, CellState.PLACEMENT_ALLY)  # Rouge mais pour alliés (joueur)
 	
 	# Régénérer les visuels pour afficher les zones
 	_generate_visual_grid()
@@ -235,7 +267,7 @@ func clear_placement_zones():
 
 ## Gère le clic sur une cellule de placement
 func handle_placement_click(grid_pos: Vector2i):
-	"""Gère le clic sur une cellule bleue pour placer le joueur"""
+	"""Gère le clic sur une cellule rouge pour placer le joueur"""
 	if not is_valid_grid_position(grid_pos):
 		return false
 	
@@ -243,9 +275,9 @@ func handle_placement_click(grid_pos: Vector2i):
 	if cell_data.is_empty():
 		return false
 	
-	# Vérifier que c'est une zone de placement alliée
+	# Vérifier que c'est une zone de placement alliée (rouge)
 	if cell_data["state"] != CellState.PLACEMENT_ALLY:
-		print("[CombatGrid] ❌ Placement invalide - Cliquer sur une zone bleue")
+		print("[CombatGrid] ❌ Placement invalide - Cliquer sur une zone rouge")
 		return false
 	
 	# Vérifier que la cellule n'est pas occupée
@@ -260,24 +292,52 @@ func handle_placement_click(grid_pos: Vector2i):
 ## Place le joueur à une position spécifique
 func place_player_at(grid_pos: Vector2i):
 	"""Place le joueur à la position spécifiée"""
+	# Vérifier s'il y a déjà un joueur placé et nettoyer l'ancienne position
+	_clear_previous_player_position()
+	
 	# Déplacer le joueur physiquement
 	var world_pos = grid_to_screen(grid_pos) + global_position
 	var game_manager = get_node_or_null("/root/GameManager")
 	if game_manager and game_manager.current_player:
 		game_manager.current_player.global_position = world_pos
 		
-		# Orientation vers la droite (vers les monstres)
+		# S'assurer que le joueur est visible
+		game_manager.current_player.visible = true
+		game_manager.current_player.z_index = 100
+		
+		# Orientation vers la gauche (vers les monstres dans zone bleue)
 		var player = game_manager.current_player
 		if player.has_method("set_facing_direction"):
-			player.set_facing_direction(1)
-		elif player.sprite and player.sprite is Sprite2D:
-			player.sprite.flip_h = false
+			player.set_facing_direction(-1)  # Face aux monstres (gauche)
+		else:
+			# Essayer de trouver le sprite du joueur
+			var sprite_node = player.get_node_or_null("Sprite2D")
+			if not sprite_node:
+				sprite_node = player.get_node_or_null("sprite")
+			if sprite_node and sprite_node is Sprite2D:
+				sprite_node.flip_h = true  # Face vers la gauche
 	
 	# Marquer la cellule comme occupée
 	set_cell_occupied(grid_pos, "player")
 	set_cell_state(grid_pos, CellState.OCCUPIED_ALLY)
 	
 	print("[CombatGrid] ✅ Joueur placé en position: ", grid_pos)
+
+## Nettoie l'ancienne position du joueur
+func _clear_previous_player_position():
+	"""Nettoie la position précédente du joueur"""
+	for y in range(grid_height):
+		for x in range(grid_width):
+			var pos = Vector2i(x, y)
+			var cell_data = get_cell_data(pos)
+			if cell_data["occupied_by"] == "player":
+				cell_data["occupied_by"] = ""
+				if cell_data["state"] == CellState.OCCUPIED_ALLY:
+					# Remettre en zone de placement si c'était dans la zone rouge
+					if x >= grid_width - 4:
+						set_cell_state(pos, CellState.PLACEMENT_ALLY)
+					else:
+						set_cell_state(pos, CellState.NORMAL)
 
 ## Gestionnaire de clic sur une cellule
 func _on_cell_clicked(grid_pos: Vector2i):
@@ -570,6 +630,19 @@ func _is_placement_phase() -> bool:
 
 ## Valide un mouvement vers une position
 func _validate_movement(target_pos: Vector2i, action_data: Dictionary) -> bool:
+	# Pendant la phase de placement, permettre le mouvement libre dans toute la zone rouge
+	if _is_placement_phase():
+		# Le joueur peut se déplacer librement dans la zone rouge (côté droit)
+		if target_pos.x >= grid_width - 4:
+			# Vérifier que la cellule n'est pas occupée
+			if is_cell_walkable(target_pos):
+				action_data["target_x"] = target_pos.x
+				action_data["target_y"] = target_pos.y
+				action_data["movement_cost"] = 0  # Gratuit pendant placement
+				return true
+		return false
+	
+	# Pendant le combat, utiliser le système de PM classique
 	if not local_player_combatant:
 		return false
 	
@@ -710,7 +783,26 @@ func _update_cell_visual(grid_pos: Vector2i):
 			return
 
 		var cell_polygon: Polygon2D = cell_node
-		cell_polygon.color = _get_color_for_cell_state(cell_data["state"])
+		var color: Color
+		
+		# Priorité à l'affichage des zones de placement même si occupées
+		if cell_data.has("placement_zone"):
+			if cell_data["placement_zone"] == "ally":
+				color = _get_color_for_cell_state(CellState.PLACEMENT_ALLY)
+				print("[CombatGrid] Zone alliée affichée: ", grid_pos, " couleur=", color)
+			elif cell_data["placement_zone"] == "enemy":
+				color = _get_color_for_cell_state(CellState.PLACEMENT_ENEMY)
+				print("[CombatGrid] Zone ennemie affichée: ", grid_pos, " couleur=", color)
+			else:
+				color = _get_color_for_cell_state(cell_data["state"])
+		else:
+			color = _get_color_for_cell_state(cell_data["state"])
+		
+		cell_polygon.color = color
+		
+		# Debug pour les zones de placement
+		if cell_data["state"] == CellState.PLACEMENT_ALLY or cell_data["state"] == CellState.PLACEMENT_ENEMY:
+			print("[CombatGrid] Zone placée: ", grid_pos, " état=", cell_data["state"], " couleur=", color)
 			
 		# Ajuster la visibilité de la bordure
 		var border = cell_node.get_node_or_null("Border")

@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3 uid="uid://cjwq8hjyamk4r"]
+
+[ext_resource type="Script" path="res://game/ui/ItemSlot.gd" id="1_3m4n5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2ijk3"]
+bg_color = Color(0.2, 0.2, 0.3, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.5, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ItemSlot" type="Panel"]
+custom_minimum_size = Vector2(48, 48)
+theme_override_styles/panel = SubResource("StyleBoxFlat_2ijk3")
+script = ExtResource("1_3m4n5")
+
+[node name="ItemIcon" type="TextureRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+mouse_filter = 2
+stretch_mode = 5
+
+[node name="QuantityLabel" type="Label"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="QualityBorder" type="NinePatchRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2

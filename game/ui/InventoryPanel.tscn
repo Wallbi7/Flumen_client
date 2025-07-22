@@ -1,0 +1,295 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8wq4hjx4mk8l"]
+
+[ext_resource type="Script" path="res://game/ui/InventoryPanel.gd" id="1_2k3l4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1hjk2"]
+bg_color = Color(0.1, 0.1, 0.15, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="InventoryPanel" type="PanelContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1hjk2")
+script = ExtResource("1_2k3l4")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="TitleLabel" type="Label" parent="VBox/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 18
+text = "📦 Inventaire"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="VBox/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "✕"
+flat = true
+
+[node name="LoadingLabel" type="Label" parent="VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "Chargement..."
+horizontal_alignment = 1
+
+[node name="MainHBox" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EquipmentArea" type="VBoxContainer" parent="VBox/MainHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="EquipmentTitle" type="Label" parent="VBox/MainHBox/EquipmentArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+text = "Équipement"
+horizontal_alignment = 1
+
+[node name="EquipmentGrid" type="GridContainer" parent="VBox/MainHBox/EquipmentArea"]
+layout_mode = 2
+columns = 3
+
+[node name="HEADSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Casque"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/HEADSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -11.5
+offset_right = 8.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "HEAD"
+horizontal_alignment = 1
+
+[node name="AMULETSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Amulette"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/AMULETSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -11.5
+offset_right = 12.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "AMUL"
+horizontal_alignment = 1
+
+[node name="RINGSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Anneau"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/RINGSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -11.5
+offset_right = 8.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "RING"
+horizontal_alignment = 1
+
+[node name="WEAPONSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Arme"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/WEAPONSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -11.5
+offset_right = 8.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "WEAP"
+horizontal_alignment = 1
+
+[node name="CHESTSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Armure"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/CHESTSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -11.5
+offset_right = 12.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "CHEST"
+horizontal_alignment = 1
+
+[node name="BELTSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Ceinture"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/BELTSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -11.5
+offset_right = 8.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "BELT"
+horizontal_alignment = 1
+
+[node name="BOOTSSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Bottes"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/BOOTSSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -11.5
+offset_right = 12.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "BOOTS"
+horizontal_alignment = 1
+
+[node name="PETSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Familier"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/PETSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -11.5
+offset_right = 8.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "PET"
+horizontal_alignment = 1
+
+[node name="MOUNTSlot" type="Panel" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+tooltip_text = "Monture"
+
+[node name="Label" type="Label" parent="VBox/MainHBox/EquipmentArea/EquipmentGrid/MOUNTSlot"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -11.5
+offset_right = 12.0
+offset_bottom = 11.5
+theme_override_font_sizes/font_size = 10
+text = "MOUNT"
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="VBox/MainHBox"]
+layout_mode = 2
+
+[node name="InventoryArea" type="VBoxContainer" parent="VBox/MainHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryTitle" type="Label" parent="VBox/MainHBox/InventoryArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+text = "Inventaire"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/MainHBox/InventoryArea"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InventoryGrid" type="GridContainer" parent="VBox/MainHBox/InventoryArea/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 6
+
+[node name="ItemTooltip" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -150.0
+mouse_filter = 2
+
+[node name="TooltipLabel" type="RichTextLabel" parent="ItemTooltip"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+theme_override_colors/default_color = Color(0.9, 0.8, 0.6, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "[b]Nom de l'objet[/b]
+Niveau requis: 10
+[i]Description de l'objet...[/i]
+
+Effets:
++5 Force
++3 Agilité"
+fit_content = true

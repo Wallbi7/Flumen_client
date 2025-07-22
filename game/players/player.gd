@@ -27,6 +27,10 @@ var movement_enabled: bool = true  # Indique si le joueur peut se déplacer
 ## ========================
 var game_manager: Node = null
 
+## CONTRÔLE DES LOGS
+## ==================
+var last_combat_block_log: float = 0.0  # Timestamp du dernier log de mouvement bloqué
+
 ## INITIALISATION DU JOUEUR
 ## =========================
 func _ready():
@@ -60,7 +64,11 @@ func _unhandled_input(event):
 		
 	# Vérifier si le jeu est en mode combat
 	if game_manager and game_manager.current_state == game_manager.GameState.IN_COMBAT:
-		print("[Player] ⚠️ Mouvement bloqué - Mode combat actif")
+		# Limiter les logs à 1 par seconde pour éviter le spam
+		var current_time = Time.get_ticks_msec() / 1000.0
+		if current_time - last_combat_block_log > 1.0:
+			print("[Player] Mouvement bloqué en mode combat")
+			last_combat_block_log = current_time
 		return
 		
 	# Vérifier si le mouvement est activé

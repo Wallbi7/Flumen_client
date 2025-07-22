@@ -13,6 +13,7 @@ signal combat_started(combat_data)
 signal combat_update(update_data)
 signal combat_action_response(response_data)
 signal combat_ended(end_data)
+signal monsters_data(data)
 
 # Signaux pour les personnages
 signal characters_list_received(characters_data)
@@ -268,30 +269,26 @@ func _handle_map_changed(data):
 
 func _handle_combat_started(data):
 	"""Gère la réception des données initiales d'un combat."""
-	print("[WebSocketManager] 🥊 COMBAT_STARTED reçu du serveur !")
-	print("[WebSocketManager] 🔍 DEBUG - Type de données: ", typeof(data))
-	print("[WebSocketManager] 🔍 DEBUG - Données reçues: ", str(data))
+	print("[WebSocketManager] Combat reçu du serveur")
 	emit_signal("combat_started", data)
 
 func _handle_combat_update(data):
 	"""Gère les mises à jour d'état du combat."""
-	print("[WebSocketManager] 🔄 COMBAT_UPDATE reçu du serveur")
 	emit_signal("combat_update", data)
 
 func _handle_combat_action_response(data):
 	"""Gère les réponses aux actions de combat."""
-	print("[WebSocketManager] 📨 COMBAT_ACTION_RESPONSE reçu du serveur")
 	emit_signal("combat_action_response", data)
 
 func _handle_combat_ended(data):
 	"""Gère la fin d'un combat."""
-	print("[WebSocketManager] 🏁 COMBAT_ENDED reçu du serveur")
+	print("[WebSocketManager] Combat terminé")
 	emit_signal("combat_ended", data)
 
 func send_text(message: String):
 	if ws != null and ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		ws.send_text(message)
-		print("[WebSocketManager] Message envoyé: ", message)
+		# Message envoyé
 	else:
 		var ws_state = str(ws.get_ready_state()) if ws != null else "null"
 		print("[WebSocketManager] Erreur: Impossible d'envoyer le message, WebSocket non ouvert (état: ", ws_state, ")")
@@ -328,9 +325,9 @@ func send_change_map_request(map_id: String):
 		}
 		
 		var json_string = JSON.stringify(change_map_data)
-		print("[WebSocketManager] Envoi du message changement de map: ", json_string)
+		# Envoi du message changement de map
 		ws.send_text(json_string)
-		print("[WebSocketManager] Message CHANGE_MAP envoyé au serveur")
+		# Message changement de map envoyé
 	else:
 		var ws_state = str(ws.get_ready_state()) if ws != null else "null"
 		print("[WebSocketManager] WebSocket non connecté (état: ", ws_state, ") - Ne peut pas envoyer.")
@@ -439,5 +436,5 @@ func send_combat_action(action_data: Dictionary):
 		"timestamp": Time.get_unix_time_from_system()
 	}
 	send_text(JSON.stringify(message))
-	print("[WebSocketManager] Action de combat envoyée: ", action_data)
+	# Action de combat envoyée
  

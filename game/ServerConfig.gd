@@ -35,4 +35,4 @@ func check_server_status():
 
 # URL de base pour toutes les requêtes API.
 # Doit pointer vers votre serveur Go.
-const API_URL = "http://127.0.0.1:9090/api/v1"  # Changé de localhost à 127.0.0.1 
+const API_URL = "http://127.0.0.1:9090/api/v1"  # Changé de localhost à 127.0.0.1 et port 9090 

@@ -17,7 +17,7 @@ var drag_start_panel_pos = Vector2()
 ## VARIABLES D'ÉTAT
 ## =================
 var current_character_data: Dictionary = {}
-var panels_visible: Dictionary = {"stats": false}
+var panels_visible: Dictionary = {"stats": false, "inventory": false, "character": false}
 
 ## INITIALISATION
 ## ===============
@@ -219,9 +219,9 @@ func _input(event):
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_I:
-				_on_inventory_button_pressed()
+				_toggle_character_panel()
 			KEY_P:
-				_on_stats_button_pressed()
+				_toggle_character_panel()
 			KEY_S:
 				_on_spells_button_pressed()
 			KEY_Q:
@@ -233,14 +233,14 @@ func _input(event):
 ## ======================
 
 func _on_inventory_button_pressed():
-	"""Ouvre/ferme l'inventaire."""
-	print("[HUD] 📦 Inventaire (non implémenté)")
-	# TODO: Implémenter l'inventaire
+	"""Ouvre/ferme le panel personnage (inventaire + stats unifiés)."""
+	print("[HUD] 📦 Panel Personnage (Inventaire + Stats)")
+	_toggle_character_panel()
 
 func _on_stats_button_pressed():
-	"""Ouvre/ferme le panel de caractéristiques."""
-	print("[HUD] 📊 Caractéristiques")
-	_toggle_stats_panel()
+	"""Ouvre/ferme le panel personnage (inventaire + stats unifiés)."""
+	print("[HUD] 📊 Panel Personnage (Inventaire + Stats)")
+	_toggle_character_panel()
 
 func _on_spells_button_pressed():
 	"""Ouvre/ferme le grimoire de sorts."""
@@ -369,6 +369,47 @@ func _update_stats_panel():
 	
 	# TODO: Mettre à jour la liste des stats
 	# Cela nécessitera le script StatsPanel.gd pour gérer les détails
+
+## GESTION DU PANEL D'INVENTAIRE
+## ===============================
+func _toggle_character_panel():
+	"""Affiche/cache le panel personnage unifié (inventaire + stats)."""
+	panels_visible.character = !panels_visible.character
+	var character_panel_node = get_node_or_null("CharacterPanel")
+	
+	if panels_visible.character:
+		# Ouvrir le panel personnage
+		if character_panel_node:
+			if character_panel_node.has_method("open_character_panel"):
+				character_panel_node.open_character_panel()
+			else:
+				character_panel_node.visible = true
+		else:
+			# Créer le panel personnage s'il n'existe pas
+			_create_character_panel()
+	else:
+		# Fermer le panel personnage
+		if character_panel_node and character_panel_node.has_method("close_character_panel"):
+			character_panel_node.close_character_panel()
+		elif character_panel_node:
+			character_panel_node.visible = false
+
+func _create_character_panel():
+	"""Crée le panel personnage unifié."""
+	print("[HUD] Création du panel personnage...")
+	
+	# Charger la scène du panel personnage
+	var character_scene = preload("res://game/ui/CharacterPanel.tscn")
+	if character_scene:
+		var character_panel = character_scene.instantiate()
+		character_panel.name = "CharacterPanel"
+		add_child(character_panel)
+		
+		# Ouvrir le panel personnage
+		if character_panel.has_method("open_character_panel"):
+			character_panel.open_character_panel()
+	else:
+		print("[HUD] ❌ Impossible de charger la scène du panel personnage")
 
 ## MÉTHODES PUBLIQUES POUR MISE À JOUR
 ## ====================================
@@ -549,7 +590,18 @@ func _show_help_dialog():
 func _close_all_panels():
 	"""Ferme tous les panels ouverts."""
 	panels_visible.stats = false
+	panels_visible.inventory = false
+	panels_visible.character = false
+	
 	var stats_panel_node = get_node_or_null("StatsPanel")
 	if stats_panel_node:
 		stats_panel_node.visible = false
+	
+	var character_panel_node = get_node_or_null("CharacterPanel")
+	if character_panel_node:
+		if character_panel_node.has_method("close_character_panel"):
+			character_panel_node.close_character_panel()
+		else:
+			character_panel_node.visible = false
+	
 	print("[HUD] 📋 Tous les panels fermés") 

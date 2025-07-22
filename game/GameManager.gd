@@ -88,7 +88,7 @@ func _ready():
 	if _is_initialized: 
 		return
 	_is_initialized = true
-	print("[GameManager] === INITIALISATION DU GESTIONNAIRE CENTRAL ===")
+	# Initialisation du gestionnaire central
 	
 	# Initialisation du système de tooltip
 	setup_monster_tooltip()
@@ -106,9 +106,10 @@ func _ready():
 	
 	# Vérification de disponibilité des managers
 	if auth_manager == null:
-		print("[GameManager] ⚠️ ATTENTION: AuthManager non trouvé")
+		print("[GameManager] AuthManager non trouvé")
 	else:
-		print("[GameManager] ✅ AuthManager trouvé")
+		# AuthManager trouvé
+		pass
 	
 	# Le WebSocketManager sera connecté plus tard quand main.tscn sera chargé
 	print("[GameManager] WebSocketManager sera connecté lors de la connexion au serveur")
@@ -153,9 +154,9 @@ func get_map_config(map_id: String) -> Dictionary:
 	var config: Dictionary # Déclaration de la variable
 	if "combat_config" in instance: # CORRECTION: Utiliser le mot-clé 'in' pour vérifier l'existence d'une propriété
 		config = instance.get("combat_config")
-		print("[GameManager] ✅ 'combat_config' trouvée et lue: ", config)
+		# Combat config trouvée
 	else:
-		print("[GameManager] ⚠️ Aucune 'combat_config' trouvée pour: ", map_id)
+		print("[GameManager] Aucune config combat pour: ", map_id)
 		config = {} # Retourner vide comme promis
 	
 	# Libérer l'instance immédiatement après usage
@@ -170,13 +171,15 @@ func _retry_websocket_connection():
 	Essaie de reconnecter au WebSocketManager après un délai.
 	Utilisé quand le WebSocketManager n'est pas encore disponible au _ready().
 	"""
-	print("[GameManager] === RETRY CONNEXION WEBSOCKET ===")
+	# Retry connexion WebSocket
 	
-	# Essayer de récupérer le WebSocketManager
-	websocket_manager = get_node_or_null("/root/WebSocketManager")
+	# Essayer de récupérer le WebSocketManager depuis main.tscn
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		websocket_manager = main_scene.get_node_or_null("WebSocketManager")
 	
 	if websocket_manager != null:
-		print("[GameManager] ✅ WebSocketManager trouvé en retry")
+		# WebSocketManager trouvé
 		_connect_websocket_signals()
 	else:
 		print("[GameManager] ❌ WebSocketManager toujours non trouvé en retry")
@@ -191,7 +194,7 @@ func _connect_websocket_signals():
 	Connecte tous les signaux WebSocket nécessaires au fonctionnement du jeu.
 	Cette méthode centralise toutes les connexions pour éviter les oublis.
 	"""
-	print("[GameManager] === CONNEXION AUX SIGNAUX WEBSOCKET ===")
+	# Connexion aux signaux WebSocket
 	
 	# Vérifier que websocket_manager existe avant de connecter
 	if websocket_manager == null:
@@ -243,7 +246,7 @@ func _on_combat_started_from_server(combat_data: Dictionary):
 	Callback déclenché par le serveur pour démarrer un combat.
 	Utilise directement les données CombatState du serveur.
 	"""
-	print("[GameManager] ⚔️ Ordre de démarrage de combat reçu du serveur avec données: ", combat_data)
+	print("[GameManager] Combat démarré par le serveur")
 	
 	if not combat_manager:
 		print("[GameManager] ❌ CombatManager non initialisé.")
@@ -256,13 +259,11 @@ func _on_combat_started_from_server(combat_data: Dictionary):
 	# Désactiver le mouvement du joueur
 	if current_player:
 		current_player.set_movement_enabled(false)
-		print("[GameManager] 🚫 Mouvement du joueur désactivé pour le combat")
+		# Mouvement désactivé pour le combat
 
 	# Utiliser la nouvelle API qui traite directement les données serveur
 	combat_manager.start_combat_from_server(combat_data)
-	print("[GameManager] ✅ Combat démarré avec les données serveur")
 	current_state = GameState.IN_COMBAT
-	print("[GameManager] ✅ Combat démarré localement. État du jeu: IN_COMBAT")
 
 ## CONNEXION AU SERVEUR DE JEU
 ## ============================
@@ -272,7 +273,7 @@ func connect_to_game_server():
 	Utilise le token JWT stocké dans l'AuthManager pour s'authentifier.
 	Inclut maintenant un mécanisme de retry automatique.
 	"""
-	print("[GameManager] === CONNEXION AU SERVEUR DE JEU ===")
+	# Connexion au serveur de jeu
 	
 	# MISE À JOUR DE LA RÉFÉRENCE WEBSOCKET MANAGER
 	# ==============================================
@@ -319,7 +320,7 @@ func load_map(map_id: String, _spawn_x: float = 0.0, _spawn_y: float = 0.0):
 		_spawn_x (float): Position X de spawn du joueur
 		_spawn_y (float): Position Y de spawn du joueur
 	"""
-	print("[GameManager] === CHARGEMENT DE MAP ===")
+	# Chargement de map
 	print("[GameManager] Map: ", map_id, " Spawn: (", _spawn_x, ", ", _spawn_y, ")")
 	
 	# SAUVEGARDE DES COORDONNÉES
@@ -347,7 +348,7 @@ func load_map(map_id: String, _spawn_x: float = 0.0, _spawn_y: float = 0.0):
 		
 		# GÉNÉRATION AUTOMATIQUE DES TRANSITIONS
 		# =======================================
-		print("[GameManager] === GÉNÉRATION DES TRANSITIONS AUTOMATIQUES ===")
+		# Génération des transitions automatiques
 		MapTransitionGenerator.generate_transitions_for_map(current_map, map_id)
 		
 		# CRÉATION DU JOUEUR
@@ -874,7 +875,7 @@ func send_websocket_message(type: String, data: Dictionary):
 			"timestamp": Time.get_unix_time_from_system()
 		}
 		manager.send_text(JSON.stringify(message))
-		print("[GameManager] 📤 Message WebSocket envoyé: ", type, " avec données: ", data)
+		# Message WebSocket envoyé
 	else:
 		print("[GameManager] ❌ Pas de WebSocket manager disponible")
 
@@ -1171,13 +1172,13 @@ func _on_player_reached_monster(new_position: Vector2):
 	
 	# Lancer le combat avec le monstre stocké
 	if monster_to_combat:
-		print("[GameManager] ⚔️ Combat avec: ", monster_to_combat.monster_name)
+		# Combat avec le monstre
 		_initiate_combat_with_monster(monster_to_combat)
 		monster_to_combat = null  # Nettoyer la référence
 
 func _initiate_combat_with_monster(monster: Monster):
 	"""Lance le combat avec un monstre spécifique"""
-	print("[GameManager] ⚔️ Lancement du combat avec: ", monster.monster_name)
+	# Lancement du combat
 	
 	# Créer les données de combat
 	var combat_data = {
@@ -1241,7 +1242,7 @@ func setup_monster_tooltip():
 
 func start_combat_with_monster(monster: Monster):
 	"""Démarre un combat tactique avec un monstre en envoyant une requête au serveur."""
-	print("[GameManager] ⚔️ Demande de lancement de combat avec le monstre: ", monster.monster_name)
+	# Demande de combat avec monstre
 	
 	if not monster or not is_instance_valid(monster):
 		print("[GameManager] ❌ Monstre invalide, impossible de lancer le combat.")
@@ -1255,12 +1256,18 @@ func start_combat_with_monster(monster: Monster):
 
 	print("[GameManager] -> Envoi de la requête 'initiate_combat' au serveur pour le monstre: ", monster_id)
 	
+	# Vérifier que le WebSocket est connecté
+	if not ws_manager or not ws_manager.is_user_connected():
+		print("[GameManager] ❌ WebSocket non connecté, impossible d'envoyer la requête de combat")
+		return
+	
 	# Envoyer la requête au serveur via le WebSocketManager
 	# Le serveur sera responsable de créer le combat et de notifier les clients.
 	send_websocket_message("initiate_combat", {
 		"monster_id": monster_id
 	})
 	
+	print("[GameManager] ⏳ Attente de la réponse 'combat_started' du serveur...")
 	# La logique de `combat_manager.start_combat` sera maintenant déclenchée
 	# par un message entrant du serveur (ex: "combat_started").
 
@@ -1419,7 +1426,7 @@ func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		if combat_manager and combat_manager.is_combat_active:
 			print("[GameManager] 🛑 Arrêt manuel du combat (Échap)")
-			combat_manager.end_combat(CombatTurnManager.Team.ALLY)
+			combat_manager.end_combat({"result": "manual_stop", "winner": "ally"})
 			current_state = GameState.IN_GAME
 			print("[GameManager] ✅ Combat terminé manuellement")
 	
@@ -1428,7 +1435,7 @@ func _input(event):
 		print("[GameManager] 🔄 Reset complet du système de combat")
 		if combat_manager:
 			if combat_manager.is_combat_active:
-				combat_manager.end_combat(CombatTurnManager.Team.ALLY)
+				combat_manager.end_combat({"result": "manual_reset", "winner": "ally"})
 			current_state = GameState.IN_GAME
 			print("[GameManager] ✅ Système de combat réinitialisé")
 	
@@ -1517,3 +1524,35 @@ func _start_combat_if_ready():
 	if attacking_monster and current_player and current_player.global_position.distance_to(attacking_monster.get_interaction_position()) < 40.0:
 		start_combat_with_monster(attacking_monster)
 		attacking_monster = null
+
+# ==============================================
+# MÉTHODES DE TEST ET DEBUG (F9)
+# ==============================================
+
+## Démarre un combat de test pour debug
+func start_combat_test():
+	"""Démarre un combat de test sans serveur (pour debug)"""
+	print("[GameManager] 🧪 Démarrage d'un combat de test...")
+	
+	if not combat_manager:
+		print("[GameManager] ❌ CombatManager non initialisé.")
+		return
+	
+	if combat_manager.has_method("start_test_combat"):
+		combat_manager.start_test_combat()
+	else:
+		print("[GameManager] ❌ Méthode start_test_combat non disponible")
+
+## Gestion des touches de debug
+func _unhandled_key_input(event):
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_F9:
+				# Démarrer un combat de test
+				start_combat_test()
+				print("[GameManager] 🧪 Combat de test démarré (Appuyez F9)")
+			KEY_F10:
+				# Debug info du combat
+				if combat_manager:
+					combat_manager.debug_print_state()
+				print("[GameManager] 🔍 Info debug combat (F10)")

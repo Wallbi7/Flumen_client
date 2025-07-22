@@ -18,14 +18,14 @@ var fallback_executed: bool = false  # Empêche l'exécution multiple du fallbac
 ## INITIALISATION DE LA SCÈNE PRINCIPALE
 ## ======================================
 func _ready():
-	print("[Main] === INITIALISATION SCÈNE PRINCIPALE ===")
+	# Initialisation scène principale
 	
 	# AJOUT DU SCRIPT DE DEBUG COMBAT
 	# ================================
 	var debug_combat = preload("res://debug_combat_click.gd").new()
 	debug_combat.name = "CombatClickDebug"
 	add_child(debug_combat)
-	print("[Main] ✅ Script de debug combat ajouté")
+	# Script de debug combat ajouté
 	
 	# CONFIGURATION DU REDIMENSIONNEMENT
 	# ===================================
@@ -75,7 +75,7 @@ func _on_websocket_connected():
 	Appelé quand la connexion WebSocket est établie avec succès.
 	Lance le chargement de la map et la création de l'interface.
 	"""
-	print("[Main] === CONNEXION WEBSOCKET RÉUSSIE ===")
+	# Connexion WebSocket réussie
 	
 	# Arrêter le mécanisme de retry maintenant que la connexion est établie
 	if websocket_manager and websocket_manager.has_method("stop_retry"):
@@ -130,7 +130,7 @@ func _on_websocket_disconnected():
 	Appelé quand la connexion WebSocket est perdue.
 	Met à jour l'interface pour indiquer le mode hors ligne.
 	"""
-	print("[Main] === CONNEXION WEBSOCKET PERDUE ===")
+	print("[Main] Connexion WebSocket perdue")
 	# Le HUD gère lui-même l'affichage des états de connexion
 
 ## CALLBACK: ERREUR DE CONNEXION WEBSOCKET
@@ -140,13 +140,13 @@ func _on_websocket_error(error_message):
 	Appelé quand une erreur de connexion WebSocket se produit.
 	Affiche l'erreur mais permet au mécanisme de retry de continuer.
 	"""
-	print("[Main] === ERREUR DE CONNEXION ===")
+	print("[Main] Erreur de connexion")
 	print("[Main] ❌ Erreur WebSocket: ", error_message)
 	
 	# Afficher un message d'information à l'utilisateur
 	# Le retry automatique continue en arrière-plan
 	if websocket_manager and websocket_manager._retry_enabled:
-		print("[Main] 🔄 Tentative de reconnexion automatique en cours...")
+		print("[Main] Reconnexion en cours...")
 		print("[Main] Le client essaiera de se connecter quand le serveur sera disponible")
 
 ## FALLBACK: CHARGEMENT HORS LIGNE
@@ -156,7 +156,7 @@ func _fallback_load_map():
 	Fallback de sécurité : charge la map en mode hors ligne si la connexion WebSocket échoue.
 	Ne s'exécute que si aucune map n'est encore chargée ET si le fallback n'a pas déjà été exécuté.
 	"""
-	print("[Main] === VÉRIFICATION FALLBACK ===")
+	# Vérification fallback
 	
 	# VÉRIFICATIONS DE SÉCURITÉ
 	# ==========================
@@ -179,7 +179,7 @@ func _fallback_load_map():
 	
 	# EXÉCUTION DU FALLBACK
 	# ======================
-	print("[Main] === EXÉCUTION DU FALLBACK (MODE HORS LIGNE) ===")
+	print("[Main] Mode hors ligne activé")
 	fallback_executed = true
 	
 	# Lire les données du token JWT
@@ -214,7 +214,7 @@ func _setup_adaptive_camera():
 	Configure la caméra pour s'adapter automatiquement à toutes les résolutions d'écran.
 	Calcule le zoom optimal pour afficher toute la map tout en gardant les proportions.
 	"""
-	print("[Main] === CONFIGURATION CAMÉRA ADAPTATIVE ===")
+	# Configuration caméra adaptative
 	
 	# CALCUL DES DIMENSIONS
 	# =====================
@@ -256,7 +256,7 @@ func _on_viewport_size_changed():
 	Appelé automatiquement quand la taille de la fenêtre change.
 	Reconfigure la caméra pour s'adapter à la nouvelle taille.
 	"""
-	print("[Main] === REDIMENSIONNEMENT FENÊTRE ===")
+	# Redimensionnement fenêtre
 	if camera != null:
 		_setup_adaptive_camera()
 		print("[Main] Caméra ajustée à la nouvelle taille de fenêtre")
