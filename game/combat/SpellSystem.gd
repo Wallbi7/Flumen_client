@@ -6,14 +6,6 @@ class_name SpellSystem
 ## Gère les sorts disponibles, leur affichage et leur utilisation
 ## selon les données reçues du serveur Dofus-like.
 
-# Active ou désactive l'affichage des messages de debug
-const DEBUG_LOGS := false
-
-# Fonction de log conditionnel
-func debug_log(...):
-    if DEBUG_LOGS:
-        print(...)
-
 # ================================
 # ÉNUMÉRATIONS
 # ================================
@@ -181,7 +173,7 @@ signal spell_cast(spell_id: String, target_pos: Vector2i)
 # ================================
 
 func _ready():
-	debug_log("[SpellSystem] Système de sorts initialisé")
+	print("[SpellSystem] Système de sorts initialisé")
 	_load_default_spells()
 
 ## Charge les sorts par défaut (sera remplacé par les données serveur)
@@ -234,7 +226,7 @@ func _load_default_spells():
 	})
 	available_spells["heal"] = heal
 	
-	debug_log("[SpellSystem] ", available_spells.size(), " sorts par défaut chargés")
+	print("[SpellSystem] ", available_spells.size(), " sorts par défaut chargés")
 
 # ================================
 # SYNCHRONISATION SERVEUR
@@ -242,7 +234,7 @@ func _load_default_spells():
 
 ## Met à jour les sorts depuis les données serveur
 func update_spells_from_server(spells_data: Array):
-	debug_log("[SpellSystem] Mise à jour sorts depuis serveur...")
+	print("[SpellSystem] Mise à jour sorts depuis serveur...")
 	
 	available_spells.clear()
 	
@@ -250,11 +242,11 @@ func update_spells_from_server(spells_data: Array):
 		var spell = SpellTemplate.new(spell_data)
 		available_spells[spell.id] = spell
 	
-	debug_log("[SpellSystem] ", available_spells.size(), " sorts mis à jour")
+	print("[SpellSystem] ", available_spells.size(), " sorts mis à jour")
 
 ## Met à jour les sorts du joueur depuis le serveur
 func update_player_spells(character_spells: Array):
-	debug_log("[SpellSystem] Mise à jour sorts du joueur...")
+	print("[SpellSystem] Mise à jour sorts du joueur...")
 	
 	player_spells.clear()
 	
@@ -262,9 +254,9 @@ func update_player_spells(character_spells: Array):
 		if available_spells.has(spell_id):
 			player_spells.append(spell_id)
 		else:
-			debug_log("[SpellSystem] ⚠️ Sort inconnu: ", spell_id)
+			print("[SpellSystem] ⚠️ Sort inconnu: ", spell_id)
 	
-	debug_log("[SpellSystem] ", player_spells.size(), " sorts du joueur disponibles")
+	print("[SpellSystem] ", player_spells.size(), " sorts du joueur disponibles")
 
 # ================================
 # SÉLECTION ET UTILISATION
@@ -273,11 +265,11 @@ func update_player_spells(character_spells: Array):
 ## Sélectionne un sort
 func select_spell(spell_id: String):
 	if not available_spells.has(spell_id):
-		debug_log("[SpellSystem] ❌ Sort non trouvé: ", spell_id)
+		print("[SpellSystem] ❌ Sort non trouvé: ", spell_id)
 		return
 	
 	if not spell_id in player_spells:
-		debug_log("[SpellSystem] ❌ Sort non disponible pour le joueur: ", spell_id)
+		print("[SpellSystem] ❌ Sort non disponible pour le joueur: ", spell_id)
 		return
 	
 	selected_spell = available_spells[spell_id]
@@ -287,7 +279,7 @@ func select_spell(spell_id: String):
 		combat_grid.set_current_action(CombatState.ActionType.CAST_SPELL, spell_id)
 	
 	spell_selected.emit(selected_spell)
-	debug_log("[SpellSystem] ✨ Sort sélectionné: ", selected_spell.name)
+	print("[SpellSystem] ✨ Sort sélectionné: ", selected_spell.name)
 
 ## Désélectionne le sort actuel
 func deselect_spell():
@@ -299,12 +291,12 @@ func deselect_spell():
 			combat_grid.set_current_action(CombatState.ActionType.MOVE)
 		
 		spell_deselected.emit()
-		debug_log("[SpellSystem] 🚫 Sort désélectionné")
+		print("[SpellSystem] 🚫 Sort désélectionné")
 
 ## Utilise le sort sélectionné sur une cible
 func cast_spell(target_pos: Vector2i) -> bool:
 	if not selected_spell:
-		debug_log("[SpellSystem] ❌ Aucun sort sélectionné")
+		print("[SpellSystem] ❌ Aucun sort sélectionné")
 		return false
 	
 	# Valider la portée et la cible
@@ -314,7 +306,7 @@ func cast_spell(target_pos: Vector2i) -> bool:
 	# Émettre le signal pour que le CombatManager envoie au serveur
 	spell_cast.emit(selected_spell.id, target_pos)
 	
-	debug_log("[SpellSystem] 🎯 Sort lancé: ", selected_spell.name, " vers ", target_pos)
+	print("[SpellSystem] 🎯 Sort lancé: ", selected_spell.name, " vers ", target_pos)
 	return true
 
 ## Valide une cible pour un sort donné
@@ -328,7 +320,7 @@ func _validate_spell_target(spell: SpellTemplate, target_pos: Vector2i) -> bool:
 	
 	# Vérifier la portée
 	if distance < spell.min_range or distance > spell.max_range:
-		debug_log("[SpellSystem] ❌ Hors de portée: ", distance, " (", spell.min_range, "-", spell.max_range, ")")
+		print("[SpellSystem] ❌ Hors de portée: ", distance, " (", spell.min_range, "-", spell.max_range, ")")
 		return false
 	
 	# Vérifier le type de cible
@@ -341,11 +333,11 @@ func _validate_spell_target(spell: SpellTemplate, target_pos: Vector2i) -> bool:
 	match spell.target_type:
 		SpellTargetType.EMPTY_CELL:
 			if is_occupied:
-				debug_log("[SpellSystem] ❌ Cellule occupée")
+				print("[SpellSystem] ❌ Cellule occupée")
 				return false
 		SpellTargetType.ENEMY, SpellTargetType.ALLY:
 			if not is_occupied:
-				debug_log("[SpellSystem] ❌ Aucun combattant à cibler")
+				print("[SpellSystem] ❌ Aucun combattant à cibler")
 				return false
 			# TODO: Vérifier si c'est un allié ou ennemi
 	
@@ -402,11 +394,11 @@ func can_cast_spell(spell_id: String, ap_available: int) -> bool:
 
 ## Affiche les informations de debug
 func debug_print_spells():
-	debug_log("[SpellSystem] === SORTS DISPONIBLES ===")
+	print("[SpellSystem] === SORTS DISPONIBLES ===")
 	for spell_id in available_spells:
 		var spell = available_spells[spell_id]
-		debug_log("- ", spell.name, " (", spell.id, ") - ", spell.ap_cost, " PA")
+		print("- ", spell.name, " (", spell.id, ") - ", spell.ap_cost, " PA")
 	
-	debug_log("Sorts du joueur: ", player_spells)
-	debug_log("Sort sélectionné: ", selected_spell.name if selected_spell else "Aucun")
-	debug_log("=====================================") 
+	print("Sorts du joueur: ", player_spells)
+	print("Sort sélectionné: ", selected_spell.name if selected_spell else "Aucun")
+	print("=====================================") 
